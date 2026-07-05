@@ -1,17 +1,20 @@
-/* ─── Session Timeline ────────────────────────────────────
-   Real-time Chart.js scrolling line chart of rage score.
-   Dark-theme card with Orbitron header and responsive sizing.
-   ─────────────────────────────────────────────────────── */
+/* ─── Session Timeline (Neumorphism) ───────────────────
+   Real-time scrolling line chart in a neu-inset-deep
+   well inside a neu-extruded card.
+   ─────────────────────────────────────────────────── */
 
 .timeline-panel {
-  background: var(--bg-card);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-lg);
-  padding: var(--space-4);
+  border-radius: var(--radius-xl);
+  padding: var(--space-5);
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
+  gap: var(--space-4);
+  background: var(--clay);
+  box-shadow: 9px 9px 16px var(--shadow-dark),
+              -9px -9px 16px var(--shadow-light);
 }
+
+/* ─── Header ────────────────────────────────────────── */
 
 .timeline-header {
   display: flex;
@@ -23,13 +26,8 @@
   font-family: var(--font-heading);
   font-size: var(--text-h3);
   font-weight: var(--weight-bold);
-  color: var(--text-primary);
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
+  color: var(--fg);
   margin: 0;
-
-  /* Subtle glow to match HUD aesthetic */
-  text-shadow: 0 0 8px var(--accent-primary-dim);
 }
 
 .timeline-stats {
@@ -39,12 +37,81 @@
   letter-spacing: 0.1em;
 }
 
-/* ─── Canvas wrapper ──────────────────────────────────── */
+/* ─── Stats Row ─────────────────────────────────────── */
+
+.timeline-stats-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-3);
+}
+
+.timeline-stat-cell {
+  padding: var(--space-3);
+  border-radius: var(--radius-lg);
+  text-align: center;
+  background: var(--clay);
+  box-shadow: inset 6px 6px 10px var(--shadow-dark),
+              inset -6px -6px 10px var(--shadow-light);
+}
+
+.timeline-stat-value {
+  font-family: var(--font-heading);
+  font-size: var(--text-h2);
+  font-weight: var(--weight-bold);
+  color: var(--fg);
+  line-height: 1.2;
+}
+
+.timeline-stat-label {
+  font-family: var(--font-body);
+  font-size: var(--text-tiny);
+  font-weight: var(--weight-medium);
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-top: var(--space-1);
+}
+
+/* ─── Legend ────────────────────────────────────────── */
+
+.timeline-legend {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.timeline-legend-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 2px 10px;
+  border-radius: var(--radius-full);
+  font-family: var(--font-body);
+  font-size: var(--text-tiny);
+  font-weight: var(--weight-bold);
+  color: var(--fg);
+  background: var(--clay);
+  box-shadow: inset 2px 2px 4px var(--shadow-dark),
+              inset -2px -2px 4px var(--shadow-light);
+}
+
+.timeline-legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-full);
+}
+
+/* ─── Chart Well ────────────────────────────────────── */
 
 .timeline-chart-wrapper {
   position: relative;
   width: 100%;
   height: 180px;
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  background: var(--clay);
+  box-shadow: inset 10px 10px 20px var(--shadow-dark-strong),
+              inset -10px -10px 20px var(--shadow-light-strong);
 }
 
 .timeline-chart-wrapper canvas {
@@ -53,7 +120,7 @@
   height: 100% !important;
 }
 
-/* ─── Responsive ──────────────────────────────────────── */
+/* ─── Responsive ────────────────────────────────────── */
 
 @media (max-width: 1024px) {
   .timeline-chart-wrapper {
@@ -65,6 +132,11 @@
   .timeline-chart-wrapper {
     height: 120px;
   }
+
+  .timeline-stats-row {
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-2);
+  }
 }
 
 /* Compact dashboard layout */
@@ -72,7 +144,7 @@
   height: 140px;
 }
 
-/* ─── Reduced motion ──────────────────────────────────── */
+/* ─── Reduced motion ────────────────────────────────── */
 
 @media (prefers-reduced-motion: reduce) {
   .timeline-chart-wrapper canvas {

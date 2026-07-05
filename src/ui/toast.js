@@ -56,7 +56,7 @@ export class ToastManager {
         <div class="toast__time">${elapsed}</div>
         <div class="toast__progress"></div>
       </div>
-      <button class="toast__close" aria-label="Dismiss">&times;</button>
+      <button class="toast__close" aria-label="Dismiss"><iconify-icon icon="lucide:x"></iconify-icon></button>
     `;
 
     // Close button handler

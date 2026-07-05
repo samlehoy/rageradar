@@ -5,18 +5,6 @@
  */
 import { eventBus } from '../utils/event-bus.js';
 
-const SVG_PLAY =
-  '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="5 3 19 12 5 21 5 3"/></svg>';
-
-const SVG_PAUSE =
-  '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>';
-
-const SVG_STOP =
-  '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none"><rect x="4" y="4" width="16" height="16" rx="2"/></svg>';
-
-const SVG_HISTORY =
-  '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>';
-
 /**
  * @typedef {string} SessionState
  * @value 'idle' | 'starting' | 'active' | 'paused' | 'stopping'
@@ -52,21 +40,21 @@ export class SessionControls {
     this.container.setAttribute('aria-label', 'Session controls');
 
     this.container.innerHTML = `
-      <button class="neu-btn" id="ctrl-history" aria-label="View session history" style="border-radius:12px;padding:0 12px;height:40px;font-size:14px;gap:6px">
-        <iconify-icon icon="lucide:history" style="font-size:16px"></iconify-icon>
+      <button class="btn btn--history" id="ctrl-history" aria-label="View session history">
+        <span class="btn__icon"><iconify-icon icon="lucide:history"></iconify-icon></span>
         <span class="btn__label">History</span>
       </button>
       <span class="session-controls__spacer"></span>
-      <button class="neu-btn" id="ctrl-pause" disabled aria-label="Pause session" style="border-radius:16px;padding:0 24px;height:48px;font-size:14px;gap:8px">
-        <iconify-icon icon="lucide:pause" style="font-size:16px"></iconify-icon>
+      <button class="btn btn--secondary" id="ctrl-pause" disabled aria-label="Pause session">
+        <span class="btn__icon"><iconify-icon icon="lucide:pause"></iconify-icon></span>
         <span class="btn__label">Pause</span>
       </button>
-      <button class="neu-btn" id="ctrl-stop" disabled aria-label="Stop session" style="border-radius:16px;padding:0 24px;height:48px;font-size:14px;gap:8px">
-        <iconify-icon icon="lucide:square" style="font-size:16px"></iconify-icon>
+      <button class="btn btn--stop" id="ctrl-stop" disabled aria-label="Stop session">
+        <span class="btn__icon"><iconify-icon icon="lucide:square"></iconify-icon></span>
         <span class="btn__label">Stop</span>
       </button>
-      <button class="neu-btn-primary" id="ctrl-start" aria-label="Start session" style="border-radius:16px;padding:0 32px;height:48px;font-size:14px;gap:8px">
-        <iconify-icon icon="lucide:play" style="font-size:16px"></iconify-icon>
+      <button class="btn btn--primary" id="ctrl-start" aria-label="Start session">
+        <span class="btn__icon"><iconify-icon icon="lucide:play"></iconify-icon></span>
         <span class="btn__label">Start</span>
       </button>
     `;
@@ -121,9 +109,7 @@ export class SessionControls {
         this._pauseBtn.disabled = true;
         this._stopBtn.disabled = true;
         this._startBtn.querySelector('.btn__label').textContent = 'Start';
-        this._startBtn.querySelector('.btn__icon').innerHTML = SVG_PLAY;
         this._pauseBtn.querySelector('.btn__label').textContent = 'Pause';
-        this._pauseBtn.classList.remove('btn--resume');
         break;
 
       case 'starting':
@@ -135,21 +121,17 @@ export class SessionControls {
       case 'active':
         this._startBtn.disabled = true;
         this._startBtn.querySelector('.btn__label').textContent = 'Start';
-        this._startBtn.querySelector('.btn__icon').innerHTML = SVG_PLAY;
         this._pauseBtn.disabled = false;
         this._pauseBtn.querySelector('.btn__label').textContent = 'Pause';
-        this._pauseBtn.classList.remove('btn--resume');
         this._stopBtn.disabled = false;
         break;
 
       case 'paused':
         this._startBtn.querySelector('.btn__label').textContent = 'Resume';
-        this._startBtn.querySelector('.btn__icon').innerHTML = SVG_PLAY;
         this._startBtn.disabled = false;
         this._pauseBtn.disabled = true;
         this._stopBtn.disabled = false;
         this._pauseBtn.querySelector('.btn__label').textContent = 'Pause';
-        this._pauseBtn.classList.remove('btn--resume');
         break;
 
       case 'stopping':

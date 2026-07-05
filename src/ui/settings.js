@@ -131,7 +131,7 @@ function buildPanelHTML() {
       aria-label="Settings" style="--panel-width: ${PANEL_WIDTH}px;">
       <div class="settings-header">
         <h2 class="settings-title">Settings</h2>
-        <button class="settings-close" aria-label="Close settings">&times;</button>
+        <button class="settings-close" aria-label="Close settings"><iconify-icon icon="lucide:x"></iconify-icon></button>
       </div>
       <div class="settings-body">
         ${cameraHTML}

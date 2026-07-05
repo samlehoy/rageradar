@@ -5,14 +5,9 @@
  */
 import { eventBus } from '../utils/event-bus.js';
 
-const SVG_EYE =
-  '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
-
-const SVG_EYE_OFF =
-  '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>';
-
-const SVG_CAMERA =
-  '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>';
+const ICON_EYE     = '<iconify-icon icon="lucide:eye"></iconify-icon>';
+const ICON_EYE_OFF = '<iconify-icon icon="lucide:eye-off"></iconify-icon>';
+const ICON_CAMERA  = '<iconify-icon icon="lucide:camera"></iconify-icon>';
 
 export class WebcamPreview {
   /**
@@ -49,12 +44,12 @@ export class WebcamPreview {
         <span class="webcam-preview__status-label">Inactive</span>
       </div>
       <div class="webcam-preview__expression" aria-live="off">
-        <span class="webcam-preview__expression-icon">${SVG_CAMERA}</span>
+        <span class="webcam-preview__expression-icon">${ICON_CAMERA}</span>
         <span class="webcam-preview__expression-text">Waiting...</span>
       </div>
       <div class="webcam-preview__banner" role="status" aria-live="polite" hidden></div>
       <button class="webcam-preview__toggle" aria-label="Toggle webcam preview">
-        <span class="webcam-preview__toggle-icon">${SVG_EYE}</span>
+        <span class="webcam-preview__toggle-icon">${ICON_EYE}</span>
       </button>
     `;
   }
@@ -229,7 +224,7 @@ export class WebcamPreview {
   _toggleVisibility() {
     this._visible = !this._visible;
     this.container.classList.toggle('webcam-preview--hidden', !this._visible);
-    this._toggleIcon.innerHTML = this._visible ? SVG_EYE : SVG_EYE_OFF;
+    this._toggleIcon.innerHTML = this._visible ? ICON_EYE : ICON_EYE_OFF;
     this._toggleBtn.setAttribute(
       'aria-label',
       this._visible ? 'Hide webcam preview' : 'Show webcam preview'

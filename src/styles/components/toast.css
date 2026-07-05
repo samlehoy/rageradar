@@ -1,17 +1,18 @@
-/* Toast notification component styles */
-/* HUD-themed toast container + individual toast notifications */
+/* ─── Toast Notifications (Neumorphism) ────────────────
+   Fixed top-right stack of neu-extruded cards with
+   colored left border per rage level.
+   ─────────────────────────────────────────────────── */
 
-/* ──────────────────────────────────────────────
-   Container
-   ────────────────────────────────────────────── */
+/* ─── Container ────────────────────────────────────── */
+
 .toast-container {
   position: fixed;
-  top: var(--space-4, 1rem);
-  right: var(--space-4, 1rem);
-  z-index: var(--z-toast, 1500);
+  top: var(--space-4);
+  right: var(--space-4);
+  z-index: var(--z-toast);
   display: flex;
   flex-direction: column;
-  gap: var(--space-3, 0.75rem);
+  gap: var(--space-3);
   pointer-events: none;
   max-width: 380px;
   width: auto;
@@ -21,21 +22,20 @@
   pointer-events: auto;
 }
 
-/* ──────────────────────────────────────────────
-   Base Toast
-   ────────────────────────────────────────────── */
+/* ─── Base Toast Card ───────────────────────────────── */
+
 .toast {
   position: relative;
   display: flex;
   align-items: flex-start;
-  gap: var(--space-3, 0.75rem);
-  padding: var(--space-4, 1rem);
-  background: var(--bg-card, #12121a);
-  border-left: 4px solid var(--rage-calm, #22c55e);
-  border-radius: var(--radius-md, 8px);
-  box-shadow:
-    var(--shadow-lg, 0 8px 24px rgba(0, 0, 0, 0.7)),
-    var(--shadow-glow-sm, 0 0 10px var(--rage-current-glow));
+  gap: var(--space-3);
+  padding: var(--space-4);
+  padding-left: var(--space-5);
+  border-radius: var(--radius-md);
+  border-left: 4px solid var(--rage-calm);
+  background: var(--clay);
+  box-shadow: 9px 9px 16px var(--shadow-dark),
+              -9px -9px 16px var(--shadow-light);
   animation: toast-in 200ms ease-out forwards;
   overflow: hidden;
   min-width: 280px;
@@ -45,32 +45,16 @@
   animation: toast-out 300ms ease-in forwards;
 }
 
-/* ──────────────────────────────────────────────
-   Variants — border color per rage level
-   ────────────────────────────────────────────── */
-.toast--calm {
-  border-left-color: var(--rage-calm, #22c55e);
-}
+/* ─── Variants — border color per rage level ────────── */
 
-.toast--focused {
-  border-left-color: var(--rage-focused, #84cc16);
-}
+.toast--calm    { border-left-color: var(--rage-calm); }
+.toast--focused { border-left-color: var(--rage-focused); }
+.toast--tense   { border-left-color: var(--rage-tense); }
+.toast--angry   { border-left-color: var(--rage-angry); }
+.toast--rage    { border-left-color: var(--rage-rage); }
 
-.toast--tense {
-  border-left-color: var(--rage-tense, #eab308);
-}
+/* ─── Elements ──────────────────────────────────────── */
 
-.toast--angry {
-  border-left-color: var(--rage-angry, #f97316);
-}
-
-.toast--rage {
-  border-left-color: var(--rage-rage, #ef4444);
-}
-
-/* ──────────────────────────────────────────────
-   Elements
-   ────────────────────────────────────────────── */
 .toast__icon {
   font-size: 1.25rem;
   line-height: 1;
@@ -84,25 +68,25 @@
 }
 
 .toast__title {
-  font-family: var(--font-heading, 'Orbitron', 'Rajdhani', sans-serif);
-  font-size: var(--text-h3, 1rem);
-  font-weight: var(--weight-semibold, 600);
-  color: var(--text-primary, #e2e8f0);
-  margin-bottom: var(--space-1, 0.25rem);
+  font-family: var(--font-body);
+  font-size: var(--text-h3);
+  font-weight: var(--weight-bold);
+  color: var(--fg);
+  margin-bottom: var(--space-1);
 }
 
 .toast__message {
-  font-family: var(--font-body, 'Inter', system-ui, -apple-system, sans-serif);
-  font-size: var(--text-body, 0.875rem);
-  color: var(--text-secondary, #94a3b8);
+  font-family: var(--font-body);
+  font-size: var(--text-body);
+  color: var(--muted);
   line-height: 1.4;
-  margin-bottom: var(--space-1, 0.25rem);
+  margin-bottom: var(--space-1);
 }
 
 .toast__time {
-  font-family: var(--font-mono, 'JetBrains Mono', 'Fira Code', monospace);
-  font-size: var(--text-tiny, 0.625rem);
-  color: var(--text-muted, #64748b);
+  font-family: var(--font-mono);
+  font-size: var(--text-tiny);
+  color: var(--text-muted);
 }
 
 .toast__progress {
@@ -110,43 +94,48 @@
   bottom: 0;
   left: 0;
   height: 3px;
-  background: var(--accent-primary, #2dd4bf);
+  background: var(--violet);
   width: 100%;
   animation: progress-shrink 5s linear forwards;
   transform-origin: left;
 }
 
-/* ──────────────────────────────────────────────
-   Close Button
-   ────────────────────────────────────────────── */
+/* ─── Close Button ──────────────────────────────────── */
+
 .toast__close {
   flex-shrink: 0;
   background: none;
   border: none;
-  color: var(--text-muted, #64748b);
-  font-size: 1.25rem;
-  line-height: 1;
+  color: var(--text-muted);
   cursor: pointer;
   padding: 0;
   margin: 0;
-  transition: color var(--transition-fast, 150ms ease);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  transition: color var(--transition-fast);
   opacity: 0.7;
 }
 
 .toast__close:hover {
-  color: var(--text-primary, #e2e8f0);
+  color: var(--fg);
   opacity: 1;
 }
 
 .toast__close:focus-visible {
-  outline: 2px solid var(--accent-primary, #2dd4bf);
+  outline: 2px solid var(--violet);
   outline-offset: 2px;
-  border-radius: var(--radius-sm, 4px);
+  border-radius: var(--radius-sm);
 }
 
-/* ──────────────────────────────────────────────
-   Animations
-   ────────────────────────────────────────────── */
+.toast__close iconify-icon {
+  font-size: 18px;
+}
+
+/* ─── Animations ────────────────────────────────────── */
+
 @keyframes toast-in {
   from {
     opacity: 0;
@@ -170,22 +159,17 @@
 }
 
 @keyframes progress-shrink {
-  from {
-    width: 100%;
-  }
-  to {
-    width: 0%;
-  }
+  from { width: 100%; }
+  to   { width: 0%; }
 }
 
-/* ──────────────────────────────────────────────
-   Responsive
-   ────────────────────────────────────────────── */
+/* ─── Responsive ────────────────────────────────────── */
+
 @media (max-width: 640px) {
   .toast-container {
-    left: var(--space-2, 0.5rem);
-    right: var(--space-2, 0.5rem);
-    top: var(--space-2, 0.5rem);
+    left: var(--space-2);
+    right: var(--space-2);
+    top: var(--space-2);
     max-width: none;
     width: auto;
   }
