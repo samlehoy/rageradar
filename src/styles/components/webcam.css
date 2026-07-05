@@ -1,0 +1,195 @@
+/* ─── Webcam Preview ─────────────────────────────────
+   Live video feed with face detection overlay.
+   Border and glow follow the dynamic rage color.
+   ─────────────────────────────────────────────────── */
+
+.webcam-preview {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  border: 2px solid var(--rage-current-color);
+  box-shadow: var(--shadow-glow-sm);
+  background: var(--bg-deep);
+  transition: border-color var(--transition-base),
+              box-shadow var(--transition-base);
+  will-change: border-color;
+}
+
+.webcam-preview__video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scaleX(-1);
+}
+
+.webcam-preview__overlay {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+/* ─── Status Badge ─────────────────────────────────── */
+
+.webcam-preview__status {
+  position: absolute;
+  top: var(--space-2);
+  left: var(--space-2);
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-2);
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  border-radius: var(--radius-full);
+  font-family: var(--font-body);
+  font-size: var(--text-tiny);
+  font-weight: var(--weight-medium);
+  color: var(--text-secondary);
+  z-index: 2;
+}
+
+.webcam-preview__status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.webcam-preview__status-dot--active {
+  background: var(--success);
+  box-shadow: 0 0 6px var(--success);
+  animation: dot-pulse 2s ease-in-out infinite;
+}
+
+.webcam-preview__status-dot--no-face {
+  background: var(--warning);
+  box-shadow: 0 0 6px var(--warning);
+}
+
+.webcam-preview__status-dot--paused {
+  background: var(--text-muted);
+}
+
+.webcam-preview__status-dot--inactive {
+  background: var(--text-muted);
+}
+
+@keyframes dot-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+/* ─── Expression Label ─────────────────────────────── */
+
+.webcam-preview__expression {
+  position: absolute;
+  bottom: var(--space-2);
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-3);
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  border-radius: var(--radius-full);
+  font-family: var(--font-mono);
+  font-size: var(--text-tiny);
+  color: var(--text-primary);
+  white-space: nowrap;
+  z-index: 2;
+  max-width: 90%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.webcam-preview__expression-icon {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  color: var(--accent-primary);
+}
+
+.webcam-preview__expression-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ─── Toggle Button ────────────────────────────────── */
+
+.webcam-preview__toggle {
+  position: absolute;
+  top: var(--space-2);
+  right: var(--space-2);
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.6);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
+  cursor: pointer;
+  z-index: 2;
+  transition: color var(--transition-fast),
+              background var(--transition-fast),
+              border-color var(--transition-fast);
+}
+
+.webcam-preview__toggle:hover {
+  color: var(--text-primary);
+  background: rgba(0, 0, 0, 0.8);
+  border-color: var(--accent-primary);
+}
+
+.webcam-preview__toggle:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+}
+
+.webcam-preview__toggle-icon {
+  display: flex;
+  align-items: center;
+}
+
+/* ─── Hidden State ─────────────────────────────────── */
+
+.webcam-preview--hidden .webcam-preview__video,
+.webcam-preview--hidden .webcam-preview__overlay,
+.webcam-preview--hidden .webcam-preview__expression {
+  display: none;
+}
+
+.webcam-preview--hidden {
+  border-style: dashed;
+  opacity: 0.6;
+}
+
+/* ─── Responsive ───────────────────────────────────── */
+
+@media (max-width: 767px) {
+  .webcam-preview {
+    display: none;
+  }
+
+  .webcam-preview--visible {
+    display: block;
+  }
+}
+
+/* ─── Reduced motion ───────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  .webcam-preview__status-dot--active {
+    animation: none;
+  }
+}

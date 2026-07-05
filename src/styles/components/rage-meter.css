@@ -1,0 +1,177 @@
+/* ─── Rage Meter ──────────────────────────────────────────
+   SVG radial gauge: 270° arc, animated needle, tick marks,
+   score overlay. Dark-tech / HUD / cyberpunk styling.
+   ─────────────────────────────────────────────────────── */
+
+/* Wrapper — establishes sizing context */
+.rage-meter {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  width: 240px;
+  height: 240px;
+}
+
+.meter-wrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+/* ─── SVG ──────────────────────────────────────────── */
+
+.rage-meter-svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 0 15px var(--rage-current-glow));
+}
+
+/* Background track arc */
+.meter-track {
+  stroke: var(--bg-elevated);
+  stroke-width: 12;
+  stroke-linecap: round;
+}
+
+/* Foreground fill arc */
+.meter-fill {
+  stroke: var(--rage-current-color);
+  stroke-width: 12;
+  stroke-linecap: round;
+  filter: url(#rage-glow);
+  transition: stroke-dashoffset 300ms ease-out, stroke var(--transition-base);
+}
+
+/* ─── Tick marks ───────────────────────────────────── */
+
+.meter-ticks {
+  stroke: var(--text-muted);
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.tick-main {
+  stroke: var(--text-secondary);
+  stroke-width: 3;
+}
+
+/* ─── Needle & center dot ──────────────────────────── */
+
+.meter-needle {
+  stroke: var(--rage-current-color);
+  stroke-width: 3;
+  stroke-linecap: round;
+  transform-origin: 120px 120px;
+  transition: transform 300ms ease-out;
+  will-change: transform;
+}
+
+.meter-center-dot {
+  fill: var(--rage-current-color);
+  filter: url(#rage-glow);
+  transition: fill var(--transition-base);
+}
+
+/* ─── Score display overlay ────────────────────────── */
+
+.meter-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.meter-score {
+  font-family: var(--font-heading);
+  font-size: var(--text-display);
+  font-weight: var(--weight-black);
+  color: var(--text-primary);
+  line-height: 1;
+  text-shadow: 0 0 20px var(--rage-current-glow);
+  transition: color var(--transition-base), text-shadow var(--transition-base);
+}
+
+.meter-label {
+  font-family: var(--font-body);
+  font-size: var(--text-small);
+  font-weight: var(--weight-semibold);
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  margin-top: var(--space-1);
+}
+
+/* ─── Glow pulse animation ─────────────────────────── */
+
+@keyframes glow-pulse {
+  0%, 100% {
+    filter: drop-shadow(0 0 10px var(--rage-current-glow)) drop-shadow(0 0 30px var(--rage-current-glow));
+  }
+  50% {
+    filter: drop-shadow(0 0 20px var(--rage-current-glow)) drop-shadow(0 0 60px var(--rage-current-glow));
+  }
+}
+
+.rage-meter-svg {
+  animation: glow-pulse var(--glow-pulse-duration) ease-in-out infinite;
+}
+
+/* ─── Responsive sizing ────────────────────────────── */
+
+@media (max-width: 1024px) {
+  .rage-meter {
+    width: 180px;
+    height: 180px;
+  }
+
+  .meter-score {
+    font-size: 2.5rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .rage-meter {
+    width: 160px;
+    height: 160px;
+  }
+
+  .meter-score {
+    font-size: 2rem;
+  }
+}
+
+/* Compact layout mode (two-column dashboard) */
+.dashboard--compact .rage-meter {
+  width: 200px;
+  height: 200px;
+}
+
+.dashboard--compact .meter-score {
+  font-size: 2.25rem;
+}
+
+/* ─── Reduced motion ───────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  .meter-fill {
+    transition: none;
+  }
+
+  .meter-needle {
+    transition: none;
+  }
+
+  .rage-meter-svg {
+    animation: none;
+    filter: drop-shadow(0 0 15px var(--rage-current-glow));
+  }
+}
