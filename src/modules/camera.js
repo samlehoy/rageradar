@@ -101,6 +101,9 @@ export class CameraModule {
     const sorted = Object.entries(expressions).sort((a, b) => b[1] - a[1]);
     const [dominant, confidence] = sorted[0];
 
+    // Include detection box for canvas overlay
+    const box = detection.detection ? detection.detection.box : null;
+
     /** @type {EmotionSnapshot} */
     const snapshot = {
       timestamp: Date.now(),
@@ -115,6 +118,7 @@ export class CameraModule {
       },
       dominant,
       confidence,
+      detection: box ? { box: { x: box.x, y: box.y, width: box.width, height: box.height } } : null,
     };
 
     eventBus.emit('camera:expression', snapshot);
