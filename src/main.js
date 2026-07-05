@@ -2,6 +2,8 @@ import './styles/main.css';
 import { RageMeter } from './ui/rage-meter.js';
 import { SessionTimeline } from './ui/timeline.js';
 import { FusionEngine } from './modules/fusion.js';
+import { AlertSystem } from './modules/alerts.js';
+import { ToastManager } from './ui/toast.js';
 
 const app = document.querySelector('#app');
 
@@ -30,9 +32,15 @@ const meter = new RageMeter(meterContainer);
 const timelineCanvas = document.querySelector('#timeline-canvas');
 const timeline = new SessionTimeline(timelineCanvas);
 
+// Alert system and toast notifications
+const alerts = new AlertSystem();
+const toasts = new ToastManager();
+
 // Expose for dev console testing
 window.__meter = meter;
 window.__timeline = timeline;
+window.__alerts = alerts;
+window.__toasts = toasts;
 
 // Optional: start engine if camera available
 if (typeof navigator !== 'undefined' && navigator.mediaDevices?.getUserMedia) {

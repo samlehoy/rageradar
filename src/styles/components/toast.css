@@ -1,1 +1,197 @@
 /* Toast notification component styles */
+/* HUD-themed toast container + individual toast notifications */
+
+/* ──────────────────────────────────────────────
+   Container
+   ────────────────────────────────────────────── */
+.toast-container {
+  position: fixed;
+  top: var(--space-4, 1rem);
+  right: var(--space-4, 1rem);
+  z-index: var(--z-toast, 1500);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3, 0.75rem);
+  pointer-events: none;
+  max-width: 380px;
+  width: auto;
+}
+
+.toast-container > * {
+  pointer-events: auto;
+}
+
+/* ──────────────────────────────────────────────
+   Base Toast
+   ────────────────────────────────────────────── */
+.toast {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3, 0.75rem);
+  padding: var(--space-4, 1rem);
+  background: var(--bg-card, #12121a);
+  border-left: 4px solid var(--rage-calm, #22c55e);
+  border-radius: var(--radius-md, 8px);
+  box-shadow:
+    var(--shadow-lg, 0 8px 24px rgba(0, 0, 0, 0.7)),
+    var(--shadow-glow-sm, 0 0 10px var(--rage-current-glow));
+  animation: toast-in 200ms ease-out forwards;
+  overflow: hidden;
+  min-width: 280px;
+}
+
+.toast--dismissing {
+  animation: toast-out 300ms ease-in forwards;
+}
+
+/* ──────────────────────────────────────────────
+   Variants — border color per rage level
+   ────────────────────────────────────────────── */
+.toast--calm {
+  border-left-color: var(--rage-calm, #22c55e);
+}
+
+.toast--focused {
+  border-left-color: var(--rage-focused, #84cc16);
+}
+
+.toast--tense {
+  border-left-color: var(--rage-tense, #eab308);
+}
+
+.toast--angry {
+  border-left-color: var(--rage-angry, #f97316);
+}
+
+.toast--rage {
+  border-left-color: var(--rage-rage, #ef4444);
+}
+
+/* ──────────────────────────────────────────────
+   Elements
+   ────────────────────────────────────────────── */
+.toast__icon {
+  font-size: 1.25rem;
+  line-height: 1;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.toast__body {
+  flex: 1;
+  min-width: 0;
+}
+
+.toast__title {
+  font-family: var(--font-heading, 'Orbitron', 'Rajdhani', sans-serif);
+  font-size: var(--text-h3, 1rem);
+  font-weight: var(--weight-semibold, 600);
+  color: var(--text-primary, #e2e8f0);
+  margin-bottom: var(--space-1, 0.25rem);
+}
+
+.toast__message {
+  font-family: var(--font-body, 'Inter', system-ui, -apple-system, sans-serif);
+  font-size: var(--text-body, 0.875rem);
+  color: var(--text-secondary, #94a3b8);
+  line-height: 1.4;
+  margin-bottom: var(--space-1, 0.25rem);
+}
+
+.toast__time {
+  font-family: var(--font-mono, 'JetBrains Mono', 'Fira Code', monospace);
+  font-size: var(--text-tiny, 0.625rem);
+  color: var(--text-muted, #64748b);
+}
+
+.toast__progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 3px;
+  background: var(--accent-primary, #8b5cf6);
+  width: 100%;
+  animation: progress-shrink 5s linear forwards;
+  transform-origin: left;
+}
+
+/* ──────────────────────────────────────────────
+   Close Button
+   ────────────────────────────────────────────── */
+.toast__close {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  color: var(--text-muted, #64748b);
+  font-size: 1.25rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+  margin: 0;
+  transition: color var(--transition-fast, 150ms ease);
+  opacity: 0.7;
+}
+
+.toast__close:hover {
+  color: var(--text-primary, #e2e8f0);
+  opacity: 1;
+}
+
+.toast__close:focus-visible {
+  outline: 2px solid var(--accent-primary, #8b5cf6);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm, 4px);
+}
+
+/* ──────────────────────────────────────────────
+   Animations
+   ────────────────────────────────────────────── */
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes toast-out {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+}
+
+@keyframes progress-shrink {
+  from {
+    width: 100%;
+  }
+  to {
+    width: 0%;
+  }
+}
+
+/* ──────────────────────────────────────────────
+   Responsive
+   ────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .toast-container {
+    left: var(--space-2, 0.5rem);
+    right: var(--space-2, 0.5rem);
+    top: var(--space-2, 0.5rem);
+    max-width: none;
+    width: auto;
+  }
+
+  .toast {
+    min-width: 0;
+    width: 100%;
+  }
+}
