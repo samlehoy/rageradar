@@ -1,81 +1,118 @@
-/* ─── Rage Meter ──────────────────────────────────────────
-   SVG radial gauge: 270° arc, animated needle, tick marks,
-   score overlay. Dark-tech / HUD / cyberpunk styling.
-   ─────────────────────────────────────────────────────── */
+/* ─── Rage Meter (Neumorphism) ─────────────────────
+   Full-circle SVG dial in neu-inset-deep well,
+   surrounded by neu-rage-glow card wrapper.
+   ──────────────────────────────────────────────── */
 
-/* Wrapper — establishes sizing context */
+/* Wrapper */
 .rage-meter {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  position: relative;
-  width: 240px;
-  height: 240px;
+  gap: var(--space-4);
 }
 
 .meter-wrapper {
-  position: relative;
   width: 100%;
-  height: 100%;
 }
 
-/* ─── SVG ──────────────────────────────────────────── */
+/* Card */
+.rage-meter-card {
+  border-radius: var(--radius-xl);
+  padding: var(--space-6);
+}
 
+/* Eyebrow row */
+.rage-meter-eyebrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-5);
+}
+
+.rage-meter-eyebrow-label {
+  font-family: var(--font-body);
+  font-size: var(--text-tiny);
+  font-weight: var(--weight-bold);
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+}
+
+.rage-meter-live-badge {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  box-shadow: inset 3px 3px 6px var(--shadow-dark), inset -3px -3px 6px var(--shadow-light);
+}
+
+.rage-meter-live-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.rage-meter-live-text {
+  font-family: var(--font-body);
+  font-size: 9px;
+  font-weight: var(--weight-bold);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--rage-current-color);
+}
+
+/* Well */
+.rage-meter-well {
+  border-radius: 50%;
+  padding: var(--space-6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.rage-meter-svg-container {
+  width: 200px;
+  height: 200px;
+}
+
+/* SVG */
 .rage-meter-svg {
   display: block;
   width: 100%;
   height: 100%;
-  filter: drop-shadow(0 0 15px var(--rage-current-glow));
 }
 
-/* Background track arc */
 .meter-track {
-  stroke: var(--bg-elevated);
-  stroke-width: 12;
-  stroke-linecap: round;
+  fill: none;
+  stroke: rgba(163, 177, 198, 0.18);
+  stroke-width: 8;
 }
 
-/* Foreground fill arc */
 .meter-fill {
+  fill: none;
   stroke: var(--rage-current-color);
-  stroke-width: 12;
+  stroke-width: 10;
   stroke-linecap: round;
-  filter: url(#rage-glow);
-  transition: stroke-dashoffset 300ms ease-out, stroke var(--transition-base);
+  filter: drop-shadow(0 0 5px var(--rage-current-glow));
+  transition: stroke-dashoffset 0.8s cubic-bezier(.45, .05, .35, 1),
+              stroke 450ms ease-out;
 }
 
-/* ─── Tick marks ───────────────────────────────────── */
-
+/* Ticks */
 .meter-ticks {
-  stroke: var(--text-muted);
+  stroke: rgba(163, 177, 198, 0.35);
   stroke-width: 2;
   stroke-linecap: round;
 }
 
 .tick-main {
-  stroke: var(--text-secondary);
-  stroke-width: 3;
+  stroke: rgba(163, 177, 198, 0.5);
+  stroke-width: 2.5;
 }
 
-/* ─── Needle & center dot ──────────────────────────── */
-
-.meter-needle {
-  stroke: var(--rage-current-color);
-  stroke-width: 3;
-  stroke-linecap: round;
-  transform-origin: 120px 120px;
-  transition: transform 350ms cubic-bezier(0.34, 1.56, 0.64, 1);
-  will-change: transform;
-}
-
-.meter-center-dot {
-  fill: var(--rage-current-color);
-  filter: url(#rage-glow);
-  transition: fill var(--transition-base);
-}
-
-/* ─── Score display overlay ────────────────────────── */
-
+/* Center overlay */
 .meter-overlay {
   position: absolute;
   top: 0;
@@ -87,91 +124,116 @@
   align-items: center;
   justify-content: center;
   pointer-events: none;
-  z-index: 1;
 }
 
 .meter-score {
   font-family: var(--font-heading);
-  font-size: var(--text-display);
+  font-size: 56px;
   font-weight: var(--weight-black);
-  color: var(--text-primary);
   line-height: 1;
-  text-shadow: 0 0 20px var(--rage-current-glow);
-  transition: color var(--transition-base), text-shadow var(--transition-base);
+  letter-spacing: -0.02em;
+  color: var(--rage-current-color);
+  transition: color 450ms ease-out;
 }
 
 .meter-label {
   font-family: var(--font-body);
-  font-size: var(--text-small);
-  font-weight: var(--weight-semibold);
-  color: var(--text-secondary);
+  font-size: var(--text-tiny);
+  font-weight: var(--weight-bold);
   text-transform: uppercase;
-  letter-spacing: 0.15em;
+  letter-spacing: 0.14em;
+  color: var(--rage-current-color);
+  margin-top: var(--space-1);
+  transition: color 450ms ease-out;
+}
+
+.meter-peak {
+  font-family: var(--font-mono);
+  font-size: var(--text-tiny);
+  color: var(--muted);
   margin-top: var(--space-1);
 }
 
-/* ─── Glow pulse animation ─────────────────────────── */
-
-@keyframes glow-pulse {
-  0%, 100% {
-    filter: drop-shadow(0 0 10px var(--rage-current-glow)) drop-shadow(0 0 30px var(--rage-current-glow));
-  }
-  50% {
-    filter: drop-shadow(0 0 20px var(--rage-current-glow)) drop-shadow(0 0 60px var(--rage-current-glow));
-  }
+/* Scale chips */
+.rage-meter-chips {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-1);
+  margin-top: var(--space-5);
 }
 
-.rage-meter-svg {
-  animation: glow-pulse var(--glow-pulse-duration) ease-in-out infinite;
+.rage-meter-chip {
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  font-family: var(--font-body);
+  font-size: 9px;
+  font-weight: var(--weight-bold);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  background: var(--clay);
+  box-shadow: inset 2px 2px 4px var(--shadow-dark), inset -2px -2px 4px var(--shadow-light);
 }
 
-/* ─── Responsive sizing ────────────────────────────── */
+.rage-meter-chip--active {
+  box-shadow: 2px 2px 4px var(--shadow-dark), -2px -2px 4px var(--shadow-light);
+}
 
+/* Trend */
+.rage-meter-trend {
+  margin-top: var(--space-4);
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  box-shadow: inset 6px 6px 10px var(--shadow-dark), inset -6px -6px 10px var(--shadow-light);
+}
+
+.rage-meter-trend-label {
+  font-family: var(--font-body);
+  font-size: var(--text-tiny);
+  font-weight: var(--weight-bold);
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.rage-meter-trend-value {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-family: var(--font-mono);
+  font-size: var(--text-small);
+  font-weight: var(--weight-bold);
+  color: var(--fg);
+}
+
+.rage-meter-trend-value iconify-icon {
+  color: var(--rage-current-color);
+  font-size: 16px;
+}
+
+/* Responsive */
 @media (max-width: 1024px) {
-  .rage-meter {
-    width: 180px;
-    height: 180px;
-  }
-
-  .meter-score {
-    font-size: 2.5rem;
-  }
-}
-
-@media (max-width: 640px) {
-  .rage-meter {
+  .rage-meter-svg-container {
     width: 160px;
     height: 160px;
   }
 
   .meter-score {
-    font-size: 2rem;
+    font-size: 40px;
   }
 }
 
-/* Compact layout mode (two-column dashboard) */
-.dashboard--compact .rage-meter {
-  width: 200px;
-  height: 200px;
-}
-
-.dashboard--compact .meter-score {
-  font-size: 2.25rem;
-}
-
-/* ─── Reduced motion ───────────────────────────────── */
-
-@media (prefers-reduced-motion: reduce) {
-  .meter-fill {
-    transition: none;
+@media (max-width: 640px) {
+  .rage-meter-svg-container {
+    width: 140px;
+    height: 140px;
   }
 
-  .meter-needle {
-    transition: none;
-  }
-
-  .rage-meter-svg {
-    animation: none;
-    filter: drop-shadow(0 0 15px var(--rage-current-glow));
+  .meter-score {
+    font-size: 34px;
   }
 }

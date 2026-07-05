@@ -105,21 +105,34 @@ class RageRadarApp {
 
     // ── Header ──────────────────────────────────────────
     const header = document.createElement('header');
-    header.className = 'dashboard-header';
+    header.className = 'dashboard-header neu-extruded';
     header.setAttribute('role', 'banner');
     header.innerHTML = `
       <div class="dashboard-header__brand">
-        <span class="dashboard-header__logo">
+        <button id="hamburger-btn" class="neu-extruded-sm" style="width:44px;height:44px;border-radius:12px;display:none;align-items:center;justify-content:center;border:none;cursor:pointer" aria-label="Open menu">
+          <iconify-icon icon="lucide:menu" style="color:var(--fg);font-size:18px"></iconify-icon>
+        </button>
+        <div class="neu-extruded-sm" style="width:44px;height:44px;border-radius:14px;display:flex;align-items:center;justify-content:center">
+          <iconify-icon icon="lucide:radar" style="color:var(--violet);font-size:20px"></iconify-icon>
+        </div>
+        <h1 class="dashboard-header__logo">
           Rage<span class="dashboard-header__logo-accent">Radar</span>
-        </span>
-        <span class="dashboard-header__timer">
-          <span class="dashboard-header__timer-label">Session</span>
-          <time id="session-timer" aria-live="off" aria-label="Session duration">00:00</time>
-        </span>
+        </h1>
+      </div>
+      <div class="dashboard-header__timer neu-inset-sm" style="border-radius:9999px;padding:6px 16px;display:flex;align-items:center;gap:8px">
+        <iconify-icon icon="lucide:timer" style="color:var(--muted);font-size:14px"></iconify-icon>
+        <time id="session-timer" aria-live="off" aria-label="Session duration">00:00</time>
+        <span style="width:1px;height:14px;background:rgba(163,177,198,0.4);margin:0 4px"></span>
+        <span style="font-family:var(--font-body);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted)">Active</span>
+        <span class="live-dot" style="width:6px;height:6px;border-radius:50%"></span>
       </div>
       <div class="dashboard-header__actions">
-        <button id="btn-settings" class="btn btn--ghost" aria-label="Open settings" title="Settings (Comma)">
-          <span class="btn__icon">${SVG_SETTINGS}</span>
+        <button id="notification-btn" class="neu-btn" style="width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;position:relative" aria-label="Notifications">
+          <iconify-icon icon="lucide:bell" style="color:var(--muted);font-size:18px"></iconify-icon>
+          <span id="notif-dot" style="position:absolute;top:10px;right:10px;width:8px;height:8px;border-radius:50%;background:var(--rage-current-color);box-shadow:0 0 4px var(--rage-current-glow);display:none"></span>
+        </button>
+        <button id="btn-settings" class="neu-btn settings-btn" style="width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center" aria-label="Open settings" title="Settings (Comma)">
+          <iconify-icon icon="lucide:settings" style="color:var(--muted);font-size:18px"></iconify-icon>
         </button>
       </div>
     `;

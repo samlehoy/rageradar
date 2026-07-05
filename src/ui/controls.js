@@ -52,22 +52,22 @@ export class SessionControls {
     this.container.setAttribute('aria-label', 'Session controls');
 
     this.container.innerHTML = `
-      <button class="btn btn--primary btn--start" id="ctrl-start" aria-label="Start session">
-        <span class="btn__icon">${SVG_PLAY}</span>
-        <span class="btn__label">Start</span>
-      </button>
-      <button class="btn btn--secondary btn--pause" id="ctrl-pause" disabled aria-label="Pause session">
-        <span class="btn__icon">${SVG_PAUSE}</span>
-        <span class="btn__label">Pause</span>
-      </button>
-      <button class="btn btn--danger btn--stop" id="ctrl-stop" disabled aria-label="Stop session">
-        <span class="btn__icon">${SVG_STOP}</span>
-        <span class="btn__label">Stop</span>
+      <button class="neu-btn" id="ctrl-history" aria-label="View session history" style="border-radius:12px;padding:0 12px;height:40px;font-size:14px;gap:6px">
+        <iconify-icon icon="lucide:history" style="font-size:16px"></iconify-icon>
+        <span class="btn__label">History</span>
       </button>
       <span class="session-controls__spacer"></span>
-      <button class="btn btn--ghost btn--history" id="ctrl-history" aria-label="View session history">
-        <span class="btn__icon">${SVG_HISTORY}</span>
-        <span class="btn__label">History</span>
+      <button class="neu-btn" id="ctrl-pause" disabled aria-label="Pause session" style="border-radius:16px;padding:0 24px;height:48px;font-size:14px;gap:8px">
+        <iconify-icon icon="lucide:pause" style="font-size:16px"></iconify-icon>
+        <span class="btn__label">Pause</span>
+      </button>
+      <button class="neu-btn" id="ctrl-stop" disabled aria-label="Stop session" style="border-radius:16px;padding:0 24px;height:48px;font-size:14px;gap:8px">
+        <iconify-icon icon="lucide:square" style="font-size:16px"></iconify-icon>
+        <span class="btn__label">Stop</span>
+      </button>
+      <button class="neu-btn-primary" id="ctrl-start" aria-label="Start session" style="border-radius:16px;padding:0 32px;height:48px;font-size:14px;gap:8px">
+        <iconify-icon icon="lucide:play" style="font-size:16px"></iconify-icon>
+        <span class="btn__label">Start</span>
       </button>
     `;
   }

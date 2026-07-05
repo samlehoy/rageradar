@@ -1,0 +1,208 @@
+/* ═══════════════════════════════════════════════════
+   Neumorphism Shadow System
+   Dual light/dark box-shadows on clay background.
+   ═══════════════════════════════════════════════════ */
+
+/* ─── Extruded (raised) ─────────────────────────── */
+.neu-extruded {
+  background: var(--clay);
+  box-shadow: 9px 9px 16px var(--shadow-dark), -9px -9px 16px var(--shadow-light);
+}
+.neu-extruded-sm {
+  background: var(--clay);
+  box-shadow: 5px 5px 10px var(--shadow-dark), -5px -5px 10px var(--shadow-light);
+}
+.neu-hover {
+  box-shadow: 12px 12px 20px var(--shadow-dark-strong), -12px -12px 20px var(--shadow-light-strong);
+}
+
+/* ─── Inset (pressed / sunken) ──────────────────── */
+.neu-inset {
+  background: var(--clay);
+  box-shadow: inset 6px 6px 10px var(--shadow-dark), inset -6px -6px 10px var(--shadow-light);
+}
+.neu-inset-deep {
+  background: var(--clay);
+  box-shadow: inset 10px 10px 20px var(--shadow-dark-strong), inset -10px -10px 20px var(--shadow-light-strong);
+}
+.neu-inset-sm {
+  background: var(--clay);
+  box-shadow: inset 3px 3px 6px var(--shadow-dark), inset -3px -3px 6px var(--shadow-light);
+}
+
+/* ─── Rage Meter Glow (extruded + dynamic glow) ──── */
+.neu-rage-glow {
+  background: var(--clay);
+  box-shadow:
+    9px 9px 16px var(--shadow-dark),
+    -9px -9px 16px var(--shadow-light),
+    0 0 30px var(--rage-current-glow);
+  animation: rage-pulse var(--glow-pulse-duration) ease-in-out infinite;
+}
+@keyframes rage-pulse {
+  0%, 100% {
+    box-shadow: 9px 9px 16px var(--shadow-dark), -9px -9px 16px var(--shadow-light), 0 0 20px var(--rage-current-glow);
+  }
+  50% {
+    box-shadow: 9px 9px 16px var(--shadow-dark), -9px -9px 16px var(--shadow-light), 0 0 50px var(--rage-current-glow);
+  }
+}
+
+/* ─── Interactive Card ───────────────────────────── */
+.neu-card-hover {
+  transition: transform .3s ease-out, box-shadow .3s ease-out;
+}
+.neu-card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 12px 12px 20px var(--shadow-dark-strong), -12px -12px 20px var(--shadow-light-strong);
+}
+
+/* ─── Buttons ────────────────────────────────────── */
+.neu-btn {
+  background: var(--clay);
+  box-shadow: 5px 5px 10px var(--shadow-dark), -5px -5px 10px var(--shadow-light);
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-weight: var(--weight-bold);
+  transition: transform .25s ease-out, box-shadow .25s ease-out;
+  display: inline-flex;
+  align-items: center;
+}
+.neu-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 6px 6px 14px var(--shadow-dark-strong), -6px -6px 14px var(--shadow-light-strong);
+}
+.neu-btn:active {
+  transform: translateY(0.5px);
+  box-shadow: inset 3px 3px 6px var(--shadow-dark), inset -3px -3px 6px var(--shadow-light);
+}
+
+.neu-btn-primary {
+  background: var(--violet);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-weight: var(--weight-bold);
+  box-shadow: 5px 5px 10px var(--shadow-dark), -5px -5px 10px var(--shadow-light);
+  transition: transform .25s ease-out, box-shadow .25s ease-out, background .25s ease-out;
+  display: inline-flex;
+  align-items: center;
+}
+.neu-btn-primary:hover {
+  transform: translateY(-1px);
+  background: var(--violet-light);
+  box-shadow: 6px 6px 14px var(--shadow-dark-strong), -6px -6px 14px var(--shadow-light-strong);
+}
+.neu-btn-primary:active {
+  transform: translateY(0.5px);
+  box-shadow: inset 3px 3px 6px rgba(108, 99, 255, 0.4), inset -3px -3px 6px var(--shadow-light);
+}
+
+/* ─── Soft Divider ───────────────────────────────── */
+.soft-divider {
+  box-shadow: inset 1px 0 0 var(--shadow-dark);
+}
+
+/* ─── Status Dots ────────────────────────────────── */
+.live-dot {
+  border-radius: 50%;
+  background: var(--rage-current-color);
+  box-shadow: 0 0 8px var(--rage-current-glow);
+  animation: live-pulse 1.8s ease-in-out infinite;
+}
+@keyframes live-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.55; transform: scale(.8); }
+}
+
+.status-active {
+  background: var(--teal);
+  box-shadow: 0 0 6px rgba(56, 178, 172, 0.6);
+  border-radius: 50%;
+}
+.status-inactive {
+  background: rgba(163, 177, 198, 0.5);
+  box-shadow: inset 1px 1px 2px var(--shadow-dark), inset -1px -1px 2px var(--shadow-light);
+  border-radius: 50%;
+}
+
+/* ─── Focus Ring ─────────────────────────────────── */
+.neu-focus:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 2px var(--violet),
+    0 0 0 4px var(--clay),
+    5px 5px 10px var(--shadow-dark),
+    -5px -5px 10px var(--shadow-light) !important;
+}
+
+/* ─── Scrollbar ──────────────────────────────────── */
+.neu-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
+.neu-scroll::-webkit-scrollbar-track {
+  background: rgba(163, 177, 198, 0.15);
+  border-radius: 8px;
+}
+.neu-scroll::-webkit-scrollbar-thumb {
+  background: rgba(163, 177, 198, 0.5);
+  border-radius: 8px;
+}
+.neu-scroll::-webkit-scrollbar-thumb:hover { background: rgba(163, 177, 198, 0.7); }
+
+/* ─── Toggle Switch ──────────────────────────────── */
+.toggle-track {
+  background: rgba(163, 177, 198, 0.3);
+  transition: background .3s ease-out;
+}
+.toggle-thumb {
+  transition: transform .3s cubic-bezier(.34, 1.56, .64, 1), background .3s ease-out;
+}
+.toggle-active .toggle-track { background: rgba(108, 99, 255, 0.18); }
+.toggle-active .toggle-thumb { transform: translateX(22px); background: var(--violet); }
+
+/* ─── Face Detection Dots ───────────────────────── */
+.face-dot {
+  background: var(--clay);
+  box-shadow: 2px 2px 4px var(--shadow-dark), -2px -2px 4px var(--shadow-light);
+  border-radius: 50%;
+}
+
+/* ─── Histogram Bars ─────────────────────────────── */
+.histo-bar {
+  transition: height .5s cubic-bezier(.34, 1.56, .64, 1);
+  border-radius: 9999px 9999px 4px 4px;
+}
+
+/* ─── Webcam Overlay Glow ────────────────────────── */
+.webcam-overlay {
+  box-shadow: inset 0 0 20px var(--rage-current-glow);
+  transition: box-shadow .4s ease-out;
+}
+
+/* ─── Mobile Menu ────────────────────────────────── */
+.mobile-menu {
+  transition: opacity .25s ease-out, transform .25s ease-out;
+}
+body.no-scroll { overflow: hidden; }
+
+/* ─── Ambient Background ─────────────────────────── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(60% 50% at 25% 30%, var(--rage-current-glow), transparent 70%);
+  opacity: 0.07;
+  transition: opacity 600ms ease-out;
+  z-index: 0;
+}
+
+/* ─── Reduced Motion ─────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001s !important;
+    transition-duration: 0.001s !important;
+    animation-iteration-count: 1 !important;
+  }
+}

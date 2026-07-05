@@ -1,106 +1,69 @@
 /**
- * Rage Meter — SVG radial gauge component.
- * 270° arc with animated needle, tick marks, and score overlay.
- * Subscribes to fusion:score events from the FusionEngine.
+ * Rage Meter — Neumorphism full-circle SVG dial.
+ * 360° ring with animated fill, chips, trend indicator.
+ * Subscribes to fusion:score events.
  */
 import { eventBus } from '../utils/event-bus.js';
-import { getRageLevel, scoreToAngle } from '../utils/rage-levels.js';
+import { getRageLevel } from '../utils/rage-levels.js';
 
-// ─── Constants ───────────────────────────────────────────────
-const CX = 120;
-const CY = 120;
-const R = 100;
-const ARC_START = 135;
-const ARC_END = 405;
-const ARC_LENGTH = 270;
-const TICK_COUNT = 10;
+const SVGB = (s) => s;
 
-// ─── Geometry helpers ────────────────────────────────────────
-
-function degToRad(deg) {
-  return (deg * Math.PI) / 180;
-}
-
-function arcPoint(deg, radius) {
-  return {
-    x: CX + radius * Math.cos(degToRad(deg)),
-    y: CY + radius * Math.sin(degToRad(deg)),
-  };
-}
-
-function arcPath(startDeg, endDeg, radius) {
-  const start = arcPoint(startDeg, radius);
-  const end = arcPoint(endDeg, radius);
-  const sweep = endDeg - startDeg;
-  const largeArc = sweep > 180 ? 1 : 0;
-  return `M ${start.x.toFixed(1)} ${start.y.toFixed(1)} A ${radius} ${radius} 0 ${largeArc} 1 ${end.x.toFixed(1)} ${end.y.toFixed(1)}`;
-}
-
-function circumference(radius) {
-  return 2 * Math.PI * radius;
-}
-
-// ─── SVG builders ────────────────────────────────────────────
-
-function renderTicks() {
-  const parts = [];
-  for (let i = 0; i <= TICK_COUNT; i++) {
-    const angle = ARC_START + (i / TICK_COUNT) * ARC_LENGTH;
-    const isMain = i === 0 || i === 5 || i === 10;
-    const innerR = isMain ? 88 : 92;
-    const outerR = 100;
-    const inner = arcPoint(angle, innerR);
-    const outer = arcPoint(angle, outerR);
-    const cls = isMain ? 'tick-main' : 'tick-minor';
-    parts.push(
-      `<line class="${cls}" x1="${inner.x.toFixed(1)}" y1="${inner.y.toFixed(1)}" x2="${outer.x.toFixed(1)}" y2="${outer.y.toFixed(1)}" />`
-    );
-  }
-  return parts.join('\n    ');
-}
-
-function renderSVG() {
-  const trackPath = arcPath(ARC_START, ARC_END, R);
-  const arcLen = circumference(R) * (ARC_LENGTH / 360);
-
+function renderMeterCard() {
   return [
-    `<svg class="rage-meter-svg" viewBox="0 0 240 240" xmlns="http://www.w3.org/2000/svg" role="meter" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-valuetext="Calm - 0%">`,
-    `  <defs>`,
-    `    <filter id="rage-glow" x="-50%" y="-50%" width="200%" height="200%">`,
-    `      <feGaussianBlur in="SourceGraphic" stdDeviation="4" result="blur" />`,
-    `      <feMerge>`,
-    `        <feMergeNode in="blur" />`,
-    `        <feMergeNode in="SourceGraphic" />`,
-    `      </feMerge>`,
-    `    </filter>`,
-    `  </defs>`,
-    ``,
-    `  <!-- Background track -->`,
-    `  <path class="meter-track" d="${trackPath}" fill="none" />`,
-    ``,
-    `  <!-- Foreground fill arc -->`,
-    `  <path class="meter-fill" d="${trackPath}" fill="none"`,
-    `    stroke-dasharray="${arcLen.toFixed(1)}" stroke-dashoffset="${arcLen.toFixed(1)}" />`,
-    ``,
-    `  <!-- Tick marks -->`,
-    `  <g class="meter-ticks">${renderTicks()}</g>`,
-    ``,
-    `  <!-- Needle -->`,
-    `  <line class="meter-needle" x1="${CX}" y1="${CY}" x2="${CX}" y2="${CY - 85}" />`,
-    ``,
-    `  <!-- Center dot -->`,
-    `  <circle class="meter-center-dot" cx="${CX}" cy="${CY}" r="6" />`,
-    `</svg>`,
+    '<section class="rage-meter-card neu-rage-glow" aria-label="Rage meter">',
+    '  <div class="rage-meter-eyebrow">',
+    '    <span class="rage-meter-eyebrow-label">Rage Level</span>',
+    '    <span class="rage-meter-live-badge">',
+    '      <span class="rage-meter-live-dot live-dot"></span>',
+    '      <span class="rage-meter-live-text">Live</span>',
+    '    </span>',
+    '  </div>',
+    '  <div class="rage-meter-well neu-inset-deep" style="border-radius:50%;padding:1.5rem;display:flex;align-items:center;justify-content:center">',
+    '    <div class="rage-meter-svg-container">',
+    '      <svg class="rage-meter-svg" viewBox="0 0 200 200" style="transform:rotate(-90deg)">',
+    '        <circle class="meter-track" cx="100" cy="100" r="88" />',
+    '        <circle class="meter-fill" cx="100" cy="100" r="88" stroke-dasharray="552.92" stroke-dashoffset="552.92" />',
+    '        <g class="meter-ticks">',
+    ...Array.from({length:8}, (_, i) => {
+      const a = (i / 8) * Math.PI * 2 - Math.PI / 2;
+      const x1 = 100 + 80 * Math.cos(a), y1 = 100 + 80 * Math.sin(a);
+      const x2 = 100 + 88 * Math.cos(a), y2 = 100 + 88 * Math.sin(a);
+      return `          <line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" />`;
+    }).join('\n'),
+    '        </g>',
+    '      </svg>',
+    '      <div class="meter-overlay" aria-hidden="true">',
+    '        <span class="meter-score">0</span>',
+    '        <span class="meter-label">Calm</span>',
+    '        <span class="meter-peak">peak --</span>',
+    '      </div>',
+    '    </div>',
+    '  </div>',
+    '  <div class="rage-meter-chips" id="meter-chips"></div>',
+    '  <div class="rage-meter-trend">',
+    '    <span class="rage-meter-trend-label">Trend</span>',
+    '    <span class="rage-meter-trend-value">',
+    '      <iconify-icon icon="lucide:minimize-2"></iconify-icon>',
+    '      <span id="meter-trend">--</span>',
+    '    </span>',
+    '  </div>',
+    '</section>',
   ].join('\n');
 }
 
-function renderOverlay() {
-  return [
-    `<div class="meter-overlay" aria-hidden="true">`,
-    `  <span class="meter-score">0</span>`,
-    `  <span class="meter-label">calm</span>`,
-    `</div>`,
-  ].join('\n');
+const RAGE_LEVEL_CHIPS = [
+  { max: 20, label: 'Calm', color: '#22c55e' },
+  { max: 40, label: 'Focused', color: '#84cc16' },
+  { max: 60, label: 'Heated', color: '#eab308' },
+  { max: 80, label: 'Tilted', color: '#f97316' },
+  { max: 100, label: 'Rage', color: '#ef4444' },
+];
+
+function renderChips() {
+  return RAGE_LEVEL_CHIPS.map((l, i) => {
+    const inset = i < 2 ? 'inset 2px 2px 4px var(--shadow-dark), inset -2px -2px 4px var(--shadow-light)' : '2px 2px 4px var(--shadow-dark), -2px -2px 4px var(--shadow-light)';
+    return `<span class="rage-meter-chip" style="color:${l.color};box-shadow:${inset}" data-level="${l.label}">${l.label}</span>`;
+  }).join('\n');
 }
 
 // ─── Component ───────────────────────────────────────────────
@@ -109,73 +72,69 @@ export class RageMeter {
   constructor(container) {
     this.container = container;
     this._score = 0;
-    this._level = 'calm';
+    this._peak = 0;
+    this._level = 'Calm';
 
     container.classList.add('rage-meter');
-    container.innerHTML = [
-      `<div class="meter-wrapper">`,
-      `  ${renderSVG()}`,
-      `  ${renderOverlay()}`,
-      `</div>`,
-    ].join('\n');
+    container.innerHTML = renderMeterCard();
 
-    // Cache DOM refs
-    this._svg = container.querySelector('.rage-meter-svg');
+    // Cache refs
     this._fillArc = container.querySelector('.meter-fill');
-    this._needle = container.querySelector('.meter-needle');
-    this._centerDot = container.querySelector('.meter-center-dot');
     this._scoreEl = container.querySelector('.meter-score');
     this._labelEl = container.querySelector('.meter-label');
+    this._peakEl = container.querySelector('.meter-peak');
+    this._trendEl = container.querySelector('#meter-trend');
+    this._chipsEl = container.querySelector('#meter-chips');
 
-    // Pre-position needle at score 0 (avoids visible initial animation)
-    this._needle.style.transform = `rotate(${scoreToAngle(0)}deg)`;
+    // Render chips
+    if (this._chipsEl) this._chipsEl.innerHTML = renderChips();
 
-    // Subscribe to fusion score updates
+    // Subscribe
     this._unsub = eventBus.on('fusion:score', (data) => {
       this.update(data.smoothed);
     });
   }
 
-  /**
-   * Update gauge visuals to reflect a new score.
-   * @param {number} score - Rage score 0-100
-   */
   update(score) {
     const clamped = Math.max(0, Math.min(100, score));
     const level = getRageLevel(clamped);
-    const angle = scoreToAngle(clamped);
-    const arcLen = circumference(R) * (ARC_LENGTH / 360);
-    const offset = arcLen - (clamped / 100) * arcLen;
+    const circ = 2 * Math.PI * 88;
+    const offset = circ * (1 - clamped / 100);
 
-    // Stroke-dashoffset drives arc fill amount
-    this._fillArc.style.strokeDashoffset = offset.toFixed(1);
+    this._fillArc.style.strokeDashoffset = offset.toFixed(2);
+    this._fillArc.style.stroke = level.color;
 
-    // Needle rotation around gauge center
-    this._needle.style.transform = `rotate(${angle}deg)`;
+    const root = document.documentElement;
+    root.style.setProperty('--rage-current-color', level.color);
+    root.style.setProperty('--rage-current-glow', level.glow);
+    root.style.setProperty('--glow-pulse-duration', level.pulseDuration);
 
-    // Dynamic CSS custom properties for color/glow/pulse
-    this._svg.style.setProperty('--rage-current-color', level.color);
-    this._svg.style.setProperty('--rage-current-glow', level.glow);
-    this._svg.style.setProperty('--glow-pulse-duration', level.pulseDuration);
-
-    // Center dot inherits level color
-    this._centerDot.style.fill = level.color;
-
-    // Text overlay
     this._scoreEl.textContent = Math.round(clamped);
+    this._scoreEl.style.color = level.color;
     this._labelEl.textContent = level.name;
+    this._labelEl.style.color = level.color;
 
-    // ARIA
-    this._svg.setAttribute('aria-valuenow', Math.round(clamped));
-    this._svg.setAttribute('aria-valuetext', `${level.name} - ${Math.round(clamped)}%`);
+    if (clamped > this._peak) this._peak = clamped;
+    this._peakEl.textContent = 'peak ' + Math.round(this._peak);
+
+    const prev = this._score;
+    const delta = Math.round(clamped - prev);
+    if (this._trendEl) {
+      if (delta > 0) {
+        this._trendEl.parentElement.querySelector('iconify-icon').setAttribute('icon', 'lucide:trending-up');
+        this._trendEl.textContent = '+' + delta + ' pts';
+      } else if (delta < 0) {
+        this._trendEl.parentElement.querySelector('iconify-icon').setAttribute('icon', 'lucide:trending-down');
+        this._trendEl.textContent = delta + ' pts';
+      } else {
+        this._trendEl.textContent = '--';
+      }
+    }
 
     this._score = clamped;
     this._level = level.name;
   }
 
-  /**
-   * Clean up event subscriptions.
-   */
   destroy() {
     this._unsub?.();
   }
