@@ -194,21 +194,24 @@ export class SettingsPanel {
 
     this._resetBtn.addEventListener('click', () => this._handleReset());
 
-    // Live changes on all inputs
-    this._wrapper.addEventListener('input', (e) => {
-      const input = e.target;
-      if (input.matches('.setting-slider, .setting-toggle, .setting-select')) {
-        this._handleChange(input);
-      }
-    });
+    // Wrapper input/change listeners guarded against rebinding
+    if (!this._wrapperEventsSetup) {
+      this._wrapper.addEventListener('input', (e) => {
+        const input = e.target;
+        if (input.matches('.setting-slider, .setting-toggle, .setting-select')) {
+          this._handleChange(input);
+        }
+      });
 
-    this._wrapper.addEventListener('change', (e) => {
-      const input = e.target;
-      if (input.matches('.setting-slider, .setting-toggle, .setting-select')) {
-        // Handle change events for select and toggle that might not fire input
-        this._handleChange(input);
-      }
-    });
+      this._wrapper.addEventListener('change', (e) => {
+        const input = e.target;
+        if (input.matches('.setting-slider, .setting-toggle, .setting-select')) {
+          this._handleChange(input);
+        }
+      });
+
+      this._wrapperEventsSetup = true;
+    }
   }
 
   _handleChange(input) {
