@@ -228,6 +228,7 @@ describe('MicrophoneModule', () => {
     });
 
     it('should emit mic:resumed on resume', () => {
+      mic.isRunning = true;
       mic.isPaused = true;
 
       const listener = vi.fn();

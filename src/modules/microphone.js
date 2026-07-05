@@ -11,7 +11,6 @@ export class MicrophoneModule {
     this.source = null;
     this.isRunning = false;
     this.isPaused = false;
-    this._animFrameId = null;
     this._intervalId = null;
 
     // Buffers
@@ -26,6 +25,7 @@ export class MicrophoneModule {
    * Start microphone stream and audio analysis.
    */
   async start() {
+    if (this.stream) return; // Already started
     try {
       this.stream = await navigator.mediaDevices.getUserMedia({
         audio: {
@@ -86,6 +86,7 @@ export class MicrophoneModule {
   }
 
   resume() {
+    if (!this.isRunning) return;
     this.isPaused = false;
     eventBus.emit('mic:resumed');
   }

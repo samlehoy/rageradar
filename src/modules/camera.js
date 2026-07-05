@@ -1,7 +1,6 @@
 import * as faceapi from 'face-api.js';
 import { eventBus } from '../utils/event-bus.js';
 
-const DETECTION_INTERVAL_MS = 100; // ~10fps
 const MODEL_URL = '/models';
 
 export class CameraModule {
@@ -31,6 +30,7 @@ export class CameraModule {
    * @param {HTMLVideoElement} videoElement - Video element to attach stream to
    */
   async start(videoElement) {
+    if (this.isRunning) return; // Already started
     this.videoElement = videoElement;
 
     try {
@@ -76,6 +76,7 @@ export class CameraModule {
   }
 
   resume() {
+    if (!this.isRunning) return;
     this.isPaused = false;
     this._startDetectionLoop();
     eventBus.emit('camera:resumed');

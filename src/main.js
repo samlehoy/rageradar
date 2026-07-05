@@ -298,8 +298,10 @@ class RageRadarApp {
     this._unsubCamStopped = eventBus.on('camera:stopped', () => {
       this._updateCamStatus('inactive');
     });
-    this._unsubCamError = eventBus.on('camera:error', () => {
+    this._unsubCamError = eventBus.on('camera:error', ({ error }) => {
       this._updateCamStatus('error');
+      this._announce(`Camera error: ${error}`);
+      console.error('Camera error:', error);
     });
 
     // Mic events → status bar
@@ -309,16 +311,18 @@ class RageRadarApp {
     this._unsubMicStopped = eventBus.on('mic:stopped', () => {
       this._updateMicStatus('inactive');
     });
-    this._unsubMicError = eventBus.on('mic:error', () => {
+    this._unsubMicError = eventBus.on('mic:error', ({ error }) => {
       this._updateMicStatus('error');
+      this._announce(`Microphone error: ${error}`);
+      console.error('Microphone error:', error);
     });
 
     // Fusion score → update stats and timeline live badge
     this._unsubFusion = eventBus.on('fusion:score', (score) => {
+      this._updateRageTokens(score);
+      this._announceRageLevel(score);
       if (this._isActive) {
         this._sessionDataPoints.push(score);
-        this._updateRageTokens(score);
-        this._announceRageLevel(score);
       }
     });
 
@@ -362,34 +366,30 @@ class RageRadarApp {
 
   async _onSessionStart() {
     try {
-      // Update disabled states
       this._controls.setState('starting');
 
-      // Start camera (attaches to webcam video element)
-      const videoEl = this._webcamPreview.getVideoElement();
-      await this._camera.start(videoEl);
-
-      // Start microphone
-      await this._microphone.start();
-
-      // Start fusion (already subscribed via constructor events)
-      // No-op: FusionEngine subscribes in constructor
-
-      // Start session manager
+      // 1. Start session manager FIRST — sets up data collection
       await this._sessionManager.start();
-
+      this._isActive = true;
       this._sessionStartTime = Date.now();
       this._elapsedSeconds = 0;
       this._sessionDataPoints = [];
-
-      // Clear alert log for new session
       this._clearAlertLog();
+
+      // 2. Start microphone
+      await this._microphone.start();
+
+      // 3. Start camera with model loading
+      const videoEl = this._webcamPreview.getVideoElement();
+      await this._camera.start(videoEl);
 
       eventBus.emit('app:session-active', true);
     } catch (err) {
       console.error('Failed to start session:', err);
+      this._isActive = false;
+      this._sessionManager.stop().catch(() => {});
       this._controls.setState('idle');
-      this._announce(`Session failed to start: ${err.message}`);
+      this._announce(`Session failed: ${err.message}`);
     }
   }
 

@@ -143,7 +143,6 @@ export class SessionControls {
         break;
 
       case 'paused':
-        this._startBtn.disabled = true;
         this._startBtn.querySelector('.btn__label').textContent = 'Resume';
         this._startBtn.querySelector('.btn__icon').innerHTML = SVG_PLAY;
         this._startBtn.disabled = false;
