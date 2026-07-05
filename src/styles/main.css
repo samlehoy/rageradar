@@ -1,0 +1,65 @@
+@import './tokens.css';
+@import './reset.css';
+@import './components/rage-meter.css';
+@import './components/timeline.css';
+@import './components/toast.css';
+@import './components/settings.css';
+@import './components/controls.css';
+@import './components/webcam.css';
+
+/* ──────────────────────────────────────────────
+   Global Styles
+   ────────────────────────────────────────────── */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Ambient background glow */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(
+    ellipse at 50% 50%,
+    var(--rage-current-glow) 0%,
+    transparent 70%
+  );
+  opacity: 0.03;
+  pointer-events: none;
+  z-index: 0;
+  transition: background var(--transition-slow);
+}
+
+#app {
+  position: relative;
+  z-index: var(--z-base);
+}
+
+/* Focus ring */
+:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .rage-meter {
+    filter: drop-shadow(0 0 15px var(--rage-current-glow));
+  }
+}
