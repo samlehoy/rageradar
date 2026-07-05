@@ -78,6 +78,18 @@ body {
     "footer   footer   footer";
 }
 
+/* Staggered entry animation */
+.dashboard-header   { animation: panel-rise-in 250ms ease-out both; animation-delay: 0ms; }
+.dashboard-sidebar  { animation: panel-rise-in 350ms ease-out both; animation-delay: 60ms; }
+.dashboard-main     { animation: panel-rise-in 350ms ease-out both; animation-delay: 120ms; }
+.dashboard-right    { animation: panel-rise-in 350ms ease-out both; animation-delay: 180ms; }
+.dashboard-footer   { animation: panel-rise-in 250ms ease-out both; animation-delay: 240ms; }
+
+@keyframes panel-rise-in {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
 /* ─── Dashboard Header ────────────────────────── */
 
 .dashboard-header {
@@ -169,29 +181,34 @@ body {
   grid-area: footer;
 }
 
-/* ─── Stat Cards ──────────────────────────────── */
+/* ─── Stat Panel (single row, divided) ──────────── */
 
 .stat-cards {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: var(--space-3);
+  gap: 0;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  overflow: hidden;
 }
 
 .stat-card {
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: var(--space-1);
-  padding: var(--space-3) var(--space-4);
-  background: var(--bg-card);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
-  transition: border-color var(--transition-fast),
-              box-shadow var(--transition-fast);
+  padding: var(--space-4) var(--space-3);
+  border-right: 1px solid var(--border-subtle);
+  transition: background var(--transition-fast);
+}
+
+.stat-card:last-child {
+  border-right: none;
 }
 
 .stat-card:hover {
-  border-color: var(--accent-primary-dim);
-  box-shadow: var(--shadow-sm);
+  background: var(--bg-elevated);
 }
 
 .stat-card__label {

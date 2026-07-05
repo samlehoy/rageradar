@@ -186,6 +186,39 @@
   }
 }
 
+/* ─── Status banner (loading / error) ─────────────── */
+
+.webcam-preview__banner {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-4);
+  background: var(--bg-deep);
+  font-family: var(--font-body);
+  font-size: var(--text-small);
+  color: var(--text-secondary);
+  text-align: center;
+  z-index: 3;
+  line-height: 1.5;
+}
+
+.webcam-preview__banner--error {
+  color: var(--error);
+  background: rgba(239, 68, 68, 0.08);
+}
+
+.webcam-preview__banner[hidden] {
+  display: none;
+}
+
+/* Error status dot */
+.webcam-preview__status-dot--error {
+  background: var(--error);
+  box-shadow: 0 0 6px var(--error);
+}
+
 /* ─── Reduced motion ───────────────────────────────── */
 
 @media (prefers-reduced-motion: reduce) {

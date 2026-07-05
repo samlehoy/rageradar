@@ -7,14 +7,14 @@
   --bg-elevated: #1a1a2e;
   --bg-input: #0f0f1a;
   --border-subtle: #1e1e3a;
-  --border-active: #8b5cf6;
+  --border-active: #2dd4bf;
 
   /* ──────────────────────────────────────────────
      Colors — Accent
      ────────────────────────────────────────────── */
-  --accent-primary: #8b5cf6;
-  --accent-primary-hover: #a78bfa;
-  --accent-primary-dim: rgba(139, 92, 246, 0.25);
+  --accent-primary: #2dd4bf;
+  --accent-primary-hover: #5eead4;
+  --accent-primary-dim: rgba(45, 212, 191, 0.25);
 
   /* ──────────────────────────────────────────────
      Colors — Rage Scale

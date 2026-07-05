@@ -42,7 +42,7 @@ export class SessionTimeline {
             label: 'Rage Score',
             data: [],
             borderColor: () => getRageColor(this._latestScore),
-            backgroundColor: 'rgba(139, 92, 246, 0.08)',
+            backgroundColor: 'rgba(45, 212, 191, 0.08)',
             fill: true,
             tension: 0.3,
             pointRadius: 0,

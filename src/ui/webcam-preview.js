@@ -52,6 +52,7 @@ export class WebcamPreview {
         <span class="webcam-preview__expression-icon">${SVG_CAMERA}</span>
         <span class="webcam-preview__expression-text">Waiting...</span>
       </div>
+      <div class="webcam-preview__banner" role="status" aria-live="polite" hidden></div>
       <button class="webcam-preview__toggle" aria-label="Toggle webcam preview">
         <span class="webcam-preview__toggle-icon">${SVG_EYE}</span>
       </button>
@@ -67,6 +68,7 @@ export class WebcamPreview {
     this._expressionText = this.container.querySelector('.webcam-preview__expression-text');
     this._toggleBtn = this.container.querySelector('.webcam-preview__toggle');
     this._toggleIcon = this.container.querySelector('.webcam-preview__toggle-icon');
+    this._banner = this.container.querySelector('.webcam-preview__banner');
   }
 
   _bindEvents() {
@@ -74,12 +76,40 @@ export class WebcamPreview {
   }
 
   _subscribe() {
+    // Loading banner while models download
+    this._unsubModelsLoaded = eventBus.on('camera:models-loaded', () => {
+      this._hideBanner();
+    });
+
+    // Camera started → loading done, show video
+    this._unsubStarted = eventBus.on('camera:started', () => {
+      this._hideBanner();
+    });
+
+    // Camera error → show inline message
+    this._unsubError = eventBus.on('camera:error', ({ error }) => {
+      const msgs = {
+        'NotAllowedError': 'Camera permission denied. Allow camera access in browser settings.',
+        'NotFoundError': 'No camera found. Connect a webcam and try again.',
+        'NotReadableError': 'Camera is in use by another app. Close other apps and try again.',
+      };
+      let msg = error;
+      for (const [err, label] of Object.entries(msgs)) {
+        if (error?.includes?.(err) || error?.name === err) { msg = label; break; }
+      }
+      // If the error object has a .message, use it; prefer mapped labels
+      if (typeof error === 'string' && !error.startsWith('Camera permission')) msg = 'Camera error: ' + error;
+      this._showBanner(msg, 'error');
+      this._setStatus('error');
+    });
+
     // Expression detection → draw overlay + update label
     this._unsubExpression = eventBus.on('camera:expression', (snapshot) => {
       this._detection = snapshot;
       this._setStatus('active');
       this._updateExpressionLabel(snapshot);
       this._drawOverlay(snapshot);
+      this._hideBanner();
     });
 
     // No face detected → clear overlay
@@ -96,6 +126,7 @@ export class WebcamPreview {
       this._setStatus('inactive');
       this._clearOverlay();
       this._updateExpressionLabel(null);
+      this._hideBanner();
     });
 
     this._unsubPaused = eventBus.on('camera:paused', () => {
@@ -110,6 +141,18 @@ export class WebcamPreview {
         this._setStatus('no-face');
       }
     });
+  }
+
+  _showBanner(msg, type) {
+    if (!this._banner) return;
+    this._banner.textContent = msg;
+    this._banner.className = 'webcam-preview__banner webcam-preview__banner--' + (type || 'info');
+    this._banner.hidden = false;
+  }
+
+  _hideBanner() {
+    if (!this._banner) return;
+    this._banner.hidden = true;
   }
 
   // ─── Status ─────────────────────────────────────────────
@@ -161,17 +204,17 @@ export class WebcamPreview {
     const det = snapshot.detection;
     if (det.box) {
       const { x, y, width, height } = det.box;
-      ctx.strokeStyle = '#8b5cf6';
+      ctx.strokeStyle = '#2dd4bf';
       ctx.lineWidth = 2;
       ctx.strokeRect(x, y, width, height);
 
       // Label above box
       const label = `${snapshot.dominant} ${(snapshot.confidence * 100).toFixed(0)}%`;
-      ctx.fillStyle = 'rgba(139, 92, 246, 0.8)';
+      ctx.fillStyle = 'rgba(45, 212, 191, 0.8)';
       ctx.font = '12px Inter, sans-serif';
       const textW = ctx.measureText(label).width;
       ctx.fillRect(x, y - 24, textW + 10, 20);
-      ctx.fillStyle = '#e2e8f0';
+      ctx.fillStyle = '#0a0a0f';
       ctx.fillText(label, x + 5, y - 10);
     }
   }
@@ -224,6 +267,9 @@ export class WebcamPreview {
   // ─── Cleanup ────────────────────────────────────────────
 
   destroy() {
+    this._unsubModelsLoaded?.();
+    this._unsubStarted?.();
+    this._unsubError?.();
     this._unsubExpression?.();
     this._unsubNoFace?.();
     this._unsubStopped?.();

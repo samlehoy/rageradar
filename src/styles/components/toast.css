@@ -110,7 +110,7 @@
   bottom: 0;
   left: 0;
   height: 3px;
-  background: var(--accent-primary, #8b5cf6);
+  background: var(--accent-primary, #2dd4bf);
   width: 100%;
   animation: progress-shrink 5s linear forwards;
   transform-origin: left;
@@ -139,7 +139,7 @@
 }
 
 .toast__close:focus-visible {
-  outline: 2px solid var(--accent-primary, #8b5cf6);
+  outline: 2px solid var(--accent-primary, #2dd4bf);
   outline-offset: 2px;
   border-radius: var(--radius-sm, 4px);
 }
