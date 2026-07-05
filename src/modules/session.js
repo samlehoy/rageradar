@@ -150,7 +150,7 @@ export class SessionManager {
     const avg = scores.reduce((a, b) => a + b, 0) / scores.length;
     const max = Math.max(...scores);
     const spikes = scores.filter(s => s >= 80).length;
-    const duration = this.currentSession.endedAt - this.currentSession.startedAt;
+    const duration = (this.currentSession.endedAt ?? Date.now()) - this.currentSession.startedAt;
 
     return {
       avg: Math.round(avg * 10) / 10,

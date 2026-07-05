@@ -258,6 +258,16 @@ describe('SessionManager', () => {
       expect(manager.currentSession.stats.max).toBe(70);
     });
 
+    it('should compute numeric duration during auto-save (even with null endedAt)', async () => {
+      await manager.start();
+      manager.currentSession.dataPoints = [{ smoothed: 50 }];
+
+      await manager._autoSave();
+
+      expect(manager.currentSession.stats.duration).toBeGreaterThanOrEqual(0);
+      expect(Number.isNaN(manager.currentSession.stats.duration)).toBe(false);
+    });
+
     it('should persist session to IndexedDB on auto-save', async () => {
       await manager.start();
       const id = manager.currentSession.id;
