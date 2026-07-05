@@ -4,4 +4,9 @@ dist
 .DS_Store
 coverage
 *.log
+docs
+@docs
+.superpowers
 .superdesign
+.claude
+.agents

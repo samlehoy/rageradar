@@ -1,14 +1,8 @@
 /**
  * Session Timeline — real-time scrolling line chart.
- * Renders rage score over a rolling 2-minute window using Chart.js
- * + chartjs-plugin-streaming v2.0.0.
+ * Renders rage score over a rolling 2-minute window using Chart.js v4.
  */
-import { Chart, registerables } from 'chart.js';
-Chart.register(...registerables);
-import 'chartjs-adapter-luxon';
-import StreamingPlugin from 'chartjs-plugin-streaming';
-Chart.register(StreamingPlugin);
-
+import { Chart } from 'chart.js/auto';
 import { eventBus } from '../utils/event-bus.js';
 import { getRageColor } from '../utils/rage-levels.js';
 
@@ -26,6 +20,9 @@ export class SessionTimeline {
 
     this._createChart();
     this._subscribe();
+
+    // Start 1-second interval for real-time scrolling
+    this._timer = setInterval(() => this._tick(), 1000);
   }
 
   /**
@@ -33,6 +30,7 @@ export class SessionTimeline {
    */
   _createChart() {
     const ctx = this._canvas.getContext('2d');
+    const now = Date.now();
 
     this._chart = new Chart(ctx, {
       type: 'line',
@@ -41,13 +39,35 @@ export class SessionTimeline {
           {
             label: 'Rage Score',
             data: [],
-            borderColor: () => getRageColor(this._latestScore),
-            backgroundColor: 'rgba(45, 212, 191, 0.08)',
+            borderColor: getRageColor(0),
+            backgroundColor: (context) => {
+              const chart = context.chart;
+              const { ctx: canvasCtx, chartArea } = chart;
+              if (!chartArea) return null;
+              const gradient = canvasCtx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+              gradient.addColorStop(0, 'rgba(108, 99, 255, 0.22)');
+              gradient.addColorStop(1, 'rgba(108, 99, 255, 0.0)');
+              return gradient;
+            },
             fill: true,
-            tension: 0.3,
+            tension: 0.42,
             pointRadius: 0,
-            borderWidth: 2,
+            pointHoverRadius: 6,
+            pointHoverBackgroundColor: '#6C63FF',
+            pointHoverBorderColor: '#ffffff',
+            pointHoverBorderWidth: 2,
+            borderWidth: 2.5,
           },
+          {
+            label: 'Threshold',
+            data: [],
+            borderColor: 'rgba(163, 177, 198, 0.5)',
+            borderDash: [6, 6],
+            borderWidth: 1.5,
+            pointRadius: 0,
+            fill: false,
+            tension: 0,
+          }
         ],
       },
       options: {
@@ -56,47 +76,38 @@ export class SessionTimeline {
         maintainAspectRatio: false,
         interaction: {
           intersect: false,
+          mode: 'index',
         },
         plugins: {
           legend: { display: false },
           tooltip: { enabled: false },
-          streaming: {
-            duration: 120000,        // 2-minute rolling window
-            refresh: 1000,            // 1-second tick
-            delay: 500,               // 500ms lag to allow data to arrive
-            onRefresh: (chart) => {
-              const now = Date.now();
-              chart.data.datasets.forEach((dataset) => {
-                dataset.data.push({
-                  x: now,
-                  y: this._latestScore,
-                });
-                // Keep only the latest N points within the window
-                while (dataset.data.length > MAX_POINTS) {
-                  dataset.data.shift();
-                }
-              });
-            },
-          },
         },
         scales: {
           x: {
-            type: 'realtime',
-            realtime: {
-              duration: 120000,
-              refresh: 1000,
-              delay: 500,
-              onRefresh: null, // handled at plugin level above
-            },
+            type: 'linear',
+            min: now - 120000,
+            max: now,
             ticks: {
               display: true,
               maxTicksLimit: 6,
-              color: '#64748b',
-              font: { size: 10 },
+              color: '#9CA3AF',
+              font: {
+                family: 'DM Sans',
+                size: 9,
+                weight: 'bold',
+              },
+              callback(value) {
+                const date = new Date(value);
+                const mins = String(date.getMinutes()).padStart(2, '0');
+                const secs = String(date.getSeconds()).padStart(2, '0');
+                return `${mins}:${secs}`;
+              },
             },
             grid: {
-              color: 'rgba(30, 30, 58, 0.6)',
-              drawBorder: false,
+              color: 'rgba(163, 177, 198, 0.15)',
+            },
+            border: {
+              display: false,
             },
           },
           y: {
@@ -104,21 +115,55 @@ export class SessionTimeline {
             max: 100,
             ticks: {
               stepSize: 20,
-              color: '#64748b',
-              font: { size: 10 },
+              color: '#9CA3AF',
+              font: {
+                family: 'DM Sans',
+                size: 9,
+                weight: 'bold',
+              },
               callback(value) {
                 const labels = { 0: '0', 20: '20', 40: '40', 60: '60', 80: '80', 100: '100' };
                 return labels[value] ?? '';
               },
             },
             grid: {
-              color: 'rgba(30, 30, 58, 0.6)',
-              drawBorder: false,
+              color: 'rgba(163, 177, 198, 0.15)',
+            },
+            border: {
+              display: false,
             },
           },
         },
       },
     });
+  }
+
+  /**
+   * 1-second interval tick to push data and scroll chart.
+   */
+  _tick() {
+    if (!this._chart) return;
+
+    const now = Date.now();
+    const minTime = now - 120000;
+
+    // Push new data points
+    this._chart.data.datasets[0].data.push({ x: now, y: this._latestScore });
+    this._chart.data.datasets[1].data.push({ x: now, y: 60 });
+
+    // Prune data older than 2 minutes
+    this._chart.data.datasets.forEach((ds) => {
+      ds.data = ds.data.filter((pt) => pt.x >= minTime);
+    });
+
+    // Update dataset border color dynamically
+    this._chart.data.datasets[0].borderColor = getRageColor(this._latestScore);
+
+    // Shift the x-axis scale limits
+    this._chart.options.scales.x.min = minTime;
+    this._chart.options.scales.x.max = now;
+
+    this._chart.update('none');
   }
 
   /**
@@ -142,9 +187,13 @@ export class SessionTimeline {
   }
 
   /**
-   * Tear down event subscription and destroy chart instance.
+   * Tear down event subscription, interval timer, and destroy chart instance.
    */
   destroy() {
+    if (this._timer) {
+      clearInterval(this._timer);
+      this._timer = null;
+    }
     this._unsub?.();
     if (this._chart) {
       this._chart.destroy();

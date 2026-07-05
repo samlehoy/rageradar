@@ -24,6 +24,7 @@ import { ToastManager } from './ui/toast.js';
 import { SettingsPanel } from './ui/settings.js';
 import { WebcamPreview } from './ui/webcam-preview.js';
 import { SessionControls } from './ui/controls.js';
+import { MobileMenu } from './ui/mobile-menu.js';
 
 // ─── SVG icons (inline, minimal) ──────────────────────
 
@@ -86,6 +87,9 @@ class RageRadarApp {
     this._subscribeEvents();
     this._bindKeyboardShortcuts();
 
+    // Load last session stats
+    await this._loadLastSessionStats();
+
     // Auto-open settings if first visit?
     // Just render and wait.
     eventBus.emit('app:ready');
@@ -97,51 +101,72 @@ class RageRadarApp {
     const app = document.querySelector('#app');
     app.innerHTML = '';
 
-    // Create dashboard container
-    const dashboard = document.createElement('div');
-    dashboard.className = 'dashboard';
-    dashboard.setAttribute('role', 'main');
-    dashboard.setAttribute('aria-label', 'RageRadar dashboard');
+    // Create wrapper aligned with max-width container of target design
+    const wrapper = document.createElement('div');
+    wrapper.className = 'relative max-w-[1920px] mx-auto p-3 lg:p-4 z-[1] lg:h-[100dvh] lg:flex lg:flex-col lg:overflow-y-auto lg:overflow-x-hidden neu-scroll';
 
     // ── Header ──────────────────────────────────────────
     const header = document.createElement('header');
-    header.className = 'dashboard-header neu-extruded';
+    header.className = 'neu-extruded rounded-[20px] lg:rounded-[24px] p-3 panel mb-3 lg:mb-4 flex-shrink-0';
     header.setAttribute('role', 'banner');
+    header.setAttribute('aria-label', 'Dashboard header');
     header.innerHTML = `
-      <div class="dashboard-header__brand">
-        <button id="hamburger-btn" class="neu-extruded-sm" style="width:44px;height:44px;border-radius:12px;display:none;align-items:center;justify-content:center;border:none;cursor:pointer" aria-label="Open menu">
-          <iconify-icon icon="lucide:menu" style="color:var(--fg);font-size:18px"></iconify-icon>
-        </button>
-        <div class="neu-extruded-sm" style="width:44px;height:44px;border-radius:14px;display:flex;align-items:center;justify-content:center">
-          <iconify-icon icon="lucide:radar" style="color:var(--violet);font-size:20px"></iconify-icon>
+      <div class="flex items-center justify-between gap-4">
+        <!-- Logo -->
+        <div class="flex items-center gap-3">
+          <button id="hamburger-btn" class="lg:hidden neu-btn w-10 h-10 sm:w-11 sm:h-11 rounded-[12px] flex items-center justify-center" aria-label="Open menu">
+            <iconify-icon icon="lucide:menu" class="text-fg text-lg"></iconify-icon>
+          </button>
+          <div class="flex items-center gap-2.5">
+            <div class="neu-extruded-sm rounded-[14px] w-11 h-11 flex items-center justify-center">
+              <iconify-icon icon="lucide:radar" class="text-violet text-xl"></iconify-icon>
+            </div>
+            <h1 class="font-jakarta font-extrabold text-lg sm:text-xl lg:text-2xl tracking-tight">
+              <span class="text-fg">Rage</span><span class="text-violet">Radar</span>
+            </h1>
+          </div>
         </div>
-        <h1 class="dashboard-header__logo">
-          Rage<span class="dashboard-header__logo-accent">Radar</span>
-        </h1>
-      </div>
-      <div class="dashboard-header__timer neu-inset-sm" style="border-radius:9999px;padding:6px 16px;display:flex;align-items:center;gap:8px">
-        <iconify-icon icon="lucide:timer" style="color:var(--muted);font-size:14px"></iconify-icon>
-        <time id="session-timer" aria-live="off" aria-label="Session duration">00:00</time>
-        <span style="width:1px;height:14px;background:rgba(163,177,198,0.4);margin:0 4px"></span>
-        <span style="font-family:var(--font-body);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted)">Active</span>
-        <span class="live-dot" style="width:6px;height:6px;border-radius:50%"></span>
-      </div>
-      <div class="dashboard-header__actions">
-        <button id="notification-btn" class="neu-btn" style="width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;position:relative" aria-label="Notifications">
-          <iconify-icon icon="lucide:bell" style="color:var(--muted);font-size:18px"></iconify-icon>
-          <span id="notif-dot" style="position:absolute;top:10px;right:10px;width:8px;height:8px;border-radius:50%;background:var(--rage-current-color);box-shadow:0 0 4px var(--rage-current-glow);display:none"></span>
-        </button>
-        <button id="btn-settings" class="neu-btn settings-btn" style="width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center" aria-label="Open settings" title="Settings (Comma)">
-          <iconify-icon icon="lucide:settings" style="color:var(--muted);font-size:18px"></iconify-icon>
-        </button>
+
+        <!-- Session Timer -->
+        <div class="hidden lg:flex items-center gap-2 neu-inset-sm rounded-full px-4 py-2">
+          <iconify-icon icon="lucide:timer" class="text-muted text-sm"></iconify-icon>
+          <span id="session-timer" class="font-mono font-medium text-sm text-muted tabular-nums">00:00</span>
+          <span class="w-px h-3.5 bg-[rgba(163,177,198,0.4)] mx-1"></span>
+          <span class="font-dm text-[10px] font-bold uppercase tracking-wider text-muted">Active</span>
+          <span class="live-dot w-1.5 h-1.5 rounded-full"></span>
+        </div>
+
+        <!-- Right Actions -->
+        <div class="flex items-center gap-2.5">
+          <!-- Mobile timer pill -->
+          <div class="lg:hidden neu-inset-sm rounded-full px-3 py-1.5 flex items-center gap-1.5">
+            <span class="live-dot w-1.5 h-1.5 rounded-full"></span>
+            <span id="session-timer-mobile" class="font-mono text-xs text-fg font-medium">00:00</span>
+          </div>
+          
+          <button id="notification-btn" class="neu-btn w-11 h-11 rounded-full flex items-center justify-center relative" aria-label="Notifications">
+            <iconify-icon icon="lucide:bell" class="text-muted text-lg"></iconify-icon>
+            <span id="notif-dot" class="absolute top-2.5 right-2.5 w-2 h-2 rounded-full bg-[var(--rage-current-color)] shadow-[var(--rage-current-glow)]" style="display:none"></span>
+          </button>
+          
+          <button id="btn-settings" class="settings-btn neu-btn w-11 h-11 rounded-full flex items-center justify-center" aria-label="Open settings" title="Settings (Comma)">
+            <iconify-icon icon="lucide:settings" class="text-muted text-lg"></iconify-icon>
+          </button>
+        </div>
       </div>
     `;
+    wrapper.appendChild(header);
 
-    // ── Sidebar ─────────────────────────────────────────
+    // ── Main Dashboard Grid ─────────────────────────────
+    const grid = document.createElement('div');
+    grid.className = 'grid grid-cols-1 lg:grid-cols-[240px_1fr] 2xl:grid-cols-[280px_1fr_300px] gap-3 lg:gap-4 lg:flex-1 lg:min-h-0';
+    grid.id = 'dashboard-grid';
+
+    // ── Left Sidebar (Rage Meter + Webcam Preview + Device Status) ──────
     const sidebar = document.createElement('aside');
-    sidebar.className = 'dashboard-sidebar';
-    sidebar.setAttribute('aria-label', 'Monitoring panel');
-
+    sidebar.className = 'flex flex-col gap-3 lg:gap-4 min-w-0 lg:h-full lg:overflow-visible lg:pr-1';
+    sidebar.setAttribute('aria-label', 'Sidebar');
+    
     const meterContainer = document.createElement('div');
     meterContainer.id = 'meter-container';
     sidebar.appendChild(meterContainer);
@@ -150,104 +175,299 @@ class RageRadarApp {
     webcamContainer.id = 'webcam-container';
     sidebar.appendChild(webcamContainer);
 
-    // ── Main ────────────────────────────────────────────
-    const main = document.createElement('div');
-    main.className = 'dashboard-main';
+    grid.appendChild(sidebar);
+
+    // ── Main Panel (Rage Timeline + Session Insights) ──
+    const main = document.createElement('main');
+    main.className = 'flex flex-col gap-3 lg:gap-4 min-w-0 lg:h-full lg:overflow-visible lg:pr-1';
+    main.setAttribute('aria-label', 'Main content');
 
     // Timeline panel
-    const timelinePanel = document.createElement('div');
-    timelinePanel.className = 'timeline-panel';
+    const timelinePanel = document.createElement('section');
+    timelinePanel.className = 'neu-extruded rounded-[20px] lg:rounded-[24px] p-3 lg:p-4 panel flex-shrink-0';
+    timelinePanel.setAttribute('aria-label', 'Rage timeline');
     timelinePanel.innerHTML = `
-      <div class="timeline-header">
-        <h2 class="timeline-title">Rage Timeline</h2>
-        <span class="timeline-stats" id="timeline-live-badge">WAITING</span>
+      <div class="flex items-center justify-between mb-3 gap-2">
+        <div class="flex items-center gap-3">
+          <div>
+            <h2 class="font-jakarta font-bold text-lg lg:text-xl text-fg tracking-tight">Rage Timeline</h2>
+            <p class="font-dm text-xs text-muted mt-0.5">Continuous detection · last 60s roll</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <div class="neu-inset-sm rounded-full px-3 py-1.5 flex items-center gap-1.5">
+            <span class="live-dot w-1.5 h-1.5 rounded-full"></span>
+            <span class="font-dm text-[10px] font-bold uppercase tracking-wider" id="timeline-live-badge" style="color: var(--rage-current-color)">WAITING</span>
+          </div>
+          <button class="neu-btn rounded-full px-3 py-1.5 font-dm text-xs font-medium text-muted flex items-center gap-1">
+            <iconify-icon icon="lucide:clock-3" class="text-sm"></iconify-icon>
+            Now
+          </button>
+        </div>
       </div>
-      <div class="timeline-chart-wrapper">
-        <canvas id="timeline-canvas"></canvas>
+
+      <!-- Stats inline -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
+        <div class="neu-inset rounded-[16px] px-4 py-2.5">
+          <p class="font-dm text-[9px] font-bold uppercase tracking-[0.12em] text-muted">Current</p>
+          <p id="timeline-current-val" class="font-mono font-bold text-base text-fg mt-0.5 tabular-nums" style="color: var(--rage-current-color)">--</p>
+        </div>
+        <div class="neu-inset rounded-[16px] px-4 py-2.5">
+          <p class="font-dm text-[9px] font-bold uppercase tracking-[0.12em] text-muted">60s Avg</p>
+          <p id="timeline-avg-val" class="font-mono font-bold text-base text-fg mt-0.5 tabular-nums">--</p>
+        </div>
+        <div class="neu-inset rounded-[16px] px-4 py-2.5">
+          <p class="font-dm text-[9px] font-bold uppercase tracking-[0.12em] text-muted">Volatility</p>
+          <p id="timeline-volatility-val" class="font-mono font-bold text-base text-fg mt-0.5 tabular-nums">--</p>
+        </div>
+      </div>
+
+      <!-- Chart well -->
+      <div class="neu-inset-deep rounded-[20px] p-3">
+        <div class="relative h-[160px] sm:h-[180px] lg:h-[180px] xl:h-[200px]">
+          <canvas id="timeline-canvas"></canvas>
+        </div>
+      </div>
+
+      <!-- Legend -->
+      <div class="flex items-center justify-between mt-3 flex-wrap gap-2">
+        <div class="flex items-center gap-4">
+          <div class="flex items-center gap-1.5">
+            <span class="w-3 h-1.5 rounded-full" style="background: var(--rage-current-color)"></span>
+            <span class="font-dm text-xs text-muted font-medium">Rage Score</span>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <span class="text-muted">···</span>
+            <span class="font-dm text-xs text-muted font-medium">Threshold (60)</span>
+          </div>
+        </div>
+        <div class="flex items-center gap-1.5 neu-inset-sm rounded-full px-3 py-1">
+          <iconify-icon icon="lucide:activity" class="text-xs" style="color: var(--rage-current-color)"></iconify-icon>
+          <span id="timeline-frequency-val" class="font-mono text-[11px] text-fg font-bold">-- events/s</span>
+        </div>
       </div>
     `;
     main.appendChild(timelinePanel);
 
-    // Stat cards
-    const statCards = document.createElement('div');
-    statCards.className = 'stat-cards';
-    statCards.setAttribute('aria-label', 'Session statistics');
-    statCards.innerHTML = `
-      <div class="stat-card" id="stat-avg">
-        <span class="stat-card__label">Average</span>
-        <span class="stat-card__value" id="stat-avg-value">--</span>
-        <span class="stat-card__sub" id="stat-avg-label">--</span>
+    // Session Insights
+    const sessionInsights = document.createElement('section');
+    sessionInsights.className = 'neu-extruded rounded-[20px] lg:rounded-[24px] p-3 lg:p-4 panel flex-1 min-h-0 flex flex-col justify-between';
+    sessionInsights.setAttribute('aria-label', 'Session statistics');
+    sessionInsights.innerHTML = `
+      <div class="flex items-center justify-between mb-3">
+        <div>
+          <h2 class="font-jakarta font-bold text-base text-fg tracking-tight">Session Insights</h2>
+          <p id="insights-duration-subtitle" class="font-dm text-xs text-muted mt-0.5">Aggregated from 0s of tracking</p>
+        </div>
+        <div class="flex items-center gap-1.5 neu-inset-sm rounded-full px-3 py-1">
+          <iconify-icon icon="lucide:bar-chart-3" class="text-xs text-muted"></iconify-icon>
+          <span id="insights-duration-badge" class="font-dm text-[10px] font-bold uppercase tracking-wider text-muted">0 min</span>
+        </div>
       </div>
-      <div class="stat-card" id="stat-max">
-        <span class="stat-card__label">Maximum</span>
-        <span class="stat-card__value" id="stat-max-value">--</span>
-        <span class="stat-card__sub" id="stat-max-label">--</span>
+
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 lg:gap-4 flex-1 min-h-0">
+        <!-- Avg Rage -->
+        <div class="neu-inset rounded-[20px] p-3 lg:p-4 relative flex flex-col justify-center">
+          <div class="flex items-center gap-2 mb-2">
+            <div class="neu-inset-sm rounded-[10px] w-8 h-8 flex items-center justify-center">
+              <iconify-icon icon="lucide:gauge" class="text-muted text-sm"></iconify-icon>
+            </div>
+            <span class="font-dm text-[10px] font-bold uppercase tracking-[0.1em] text-muted">Avg Rage</span>
+          </div>
+          <div class="flex items-baseline gap-1">
+            <span id="stat-avg-value" class="font-mono font-bold text-2xl md:text-3xl text-fg tabular-nums">--</span>
+            <span class="font-mono text-sm text-muted">/100</span>
+          </div>
+          <div id="stat-avg-label" class="mt-2 flex items-center gap-1.5">
+            <span class="font-dm text-[10px] text-muted">--</span>
+          </div>
+        </div>
+
+        <!-- Max Rage -->
+        <div class="neu-inset rounded-[20px] p-3 lg:p-4 relative flex flex-col justify-center">
+          <div class="flex items-center gap-2 mb-2">
+            <div class="neu-inset-sm rounded-[10px] w-8 h-8 flex items-center justify-center">
+              <iconify-icon icon="lucide:flame" class="text-sm" style="color: var(--rage-current-color)"></iconify-icon>
+            </div>
+            <span class="font-dm text-[10px] font-bold uppercase tracking-[0.1em] text-muted">Max Rage</span>
+          </div>
+          <div class="flex items-baseline gap-1">
+            <span id="stat-max-value" class="font-mono font-bold text-2xl md:text-3xl tabular-nums" style="color: var(--rage-current-color)">--</span>
+            <span class="font-mono text-sm text-muted">peak</span>
+          </div>
+          <div id="stat-max-label" class="mt-2 flex items-center gap-1.5">
+            <iconify-icon icon="lucide:zap" class="text-sm" style="color: var(--rage-current-color)"></iconify-icon>
+            <span class="font-mono text-xs font-bold text-fg">--</span>
+          </div>
+        </div>
+
+        <!-- Spikes -->
+        <div class="neu-inset rounded-[20px] p-3 lg:p-4 relative flex flex-col justify-center">
+          <div class="flex items-center gap-2 mb-2">
+            <div class="neu-inset-sm rounded-[10px] w-8 h-8 flex items-center justify-center">
+              <iconify-icon icon="lucide:zap" class="text-muted text-sm"></iconify-icon>
+            </div>
+            <span class="font-dm text-[10px] font-bold uppercase tracking-[0.1em] text-muted">Spikes</span>
+          </div>
+          <div class="flex items-baseline gap-1">
+            <span id="stat-spikes-value" class="font-mono font-bold text-2xl md:text-3xl text-fg tabular-nums">--</span>
+            <span class="font-mono text-sm text-muted">events</span>
+          </div>
+          <div class="mt-2 flex items-center gap-2">
+            <div class="flex-1 h-1.5 neu-inset-sm rounded-full overflow-hidden">
+              <div id="stat-spikes-bar" class="histo-bar h-full rounded-full" style="width: 0%; background: var(--rage-current-color);"></div>
+            </div>
+            <span id="stat-spikes-label" class="font-mono text-xs text-fg font-bold">0% high</span>
+          </div>
+        </div>
       </div>
-      <div class="stat-card" id="stat-spikes">
-        <span class="stat-card__label">Spikes</span>
-        <span class="stat-card__value" id="stat-spikes-value">--</span>
-        <span class="stat-card__sub" id="stat-spikes-label">&gt;80</span>
+
+      <!-- Mini histogram -->
+      <div class="mt-3 lg:mt-4 neu-inset rounded-[16px] p-3 lg:p-4 flex-shrink-0">
+        <div class="flex items-center justify-between mb-2">
+          <span class="font-dm text-[10px] font-bold uppercase tracking-wider text-muted">Rage distribution · last 5 min</span>
+          <span class="font-mono text-[11px] text-muted">30s buckets</span>
+        </div>
+        <div class="flex items-end gap-1.5 h-12 lg:h-14" id="insights-histogram">
+          <div class="histo-bar flex-1 rounded-t-md" style="height: 0%; background: #22c55e"></div>
+          <div class="histo-bar flex-1 rounded-t-md" style="height: 0%; background: #84cc16"></div>
+          <div class="histo-bar flex-1 rounded-t-md" style="height: 0%; background: #eab308"></div>
+          <div class="histo-bar flex-1 rounded-t-md" style="height: 0%; background: #f97316"></div>
+          <div class="histo-bar flex-1 rounded-t-md" style="height: 0%; background: #eab308"></div>
+          <div class="histo-bar flex-1 rounded-t-md" style="height: 0%; background: #f97316"></div>
+          <div class="histo-bar flex-1 rounded-t-md" style="height: 0%; background: #84cc16"></div>
+          <div class="histo-bar flex-1 rounded-t-md" style="height: 0%; background: #f97316"></div>
+          <div class="histo-bar flex-1 rounded-t-md" style="height: 0%; background: #ef4444"></div>
+          <div class="histo-bar flex-1 rounded-t-md" style="height: 0%; background: #eab308"></div>
+        </div>
       </div>
     `;
-    main.appendChild(statCards);
+    main.appendChild(sessionInsights);
 
-    // ── Right Panel ─────────────────────────────────────
+    grid.appendChild(main);
+
+    // ── Right Panel (Alert Log + Device Status) ──────────
     const right = document.createElement('aside');
-    right.className = 'dashboard-right';
-    right.setAttribute('aria-label', 'Alerts and status');
+    right.className = 'flex flex-col lg:col-span-full 2xl:col-span-1 min-w-0 lg:h-full lg:overflow-visible gap-3 lg:gap-4';
+    right.setAttribute('aria-label', 'Right panel');
 
-    // Alert log
-    const alertLog = document.createElement('div');
-    alertLog.className = 'alert-log';
+    // Alert Log
+    const alertLog = document.createElement('section');
+    alertLog.className = 'alert-log neu-extruded rounded-[20px] lg:rounded-[24px] p-3 lg:p-4 panel flex-1 min-h-0 flex flex-col';
+    alertLog.setAttribute('aria-label', 'Alert log');
     alertLog.innerHTML = `
-      <div class="alert-log__header">
-        <h3 class="alert-log__title">Alert Log</h3>
-        <span class="alert-log__count" id="alert-count">0</span>
+      <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center gap-2">
+          <h2 class="font-jakarta font-bold text-base text-fg tracking-tight">Alert Log</h2>
+          <span class="neu-inset-sm rounded-full px-2 py-0.5">
+            <span id="alert-count" class="font-mono text-[11px] font-bold text-muted">0</span>
+          </span>
+        </div>
+        <button id="clear-alerts-btn" class="neu-btn w-8 h-8 rounded-full flex items-center justify-center" aria-label="Clear alerts">
+          <iconify-icon icon="lucide:trash-2" class="text-muted text-sm"></iconify-icon>
+        </button>
       </div>
-      <div class="alert-log__list" id="alert-list">
-        <div class="alert-log__empty">No alerts yet. Start a session to begin monitoring.</div>
+
+      <div id="alert-list" class="neu-inset-deep rounded-[16px] p-2 overflow-y-auto neu-scroll flex-1 min-h-[100px] space-y-2">
+        <div class="alert-log__empty text-xs text-muted p-4 text-center">No alerts yet. Start a session to begin monitoring.</div>
       </div>
+
+      <button class="mt-3 w-full neu-inset rounded-[12px] py-2.5 font-dm text-xs font-bold uppercase tracking-wider text-muted flex items-center justify-center gap-1.5">
+        <iconify-icon icon="lucide:list" class="text-sm"></iconify-icon>
+        View full history
+      </button>
     `;
     right.appendChild(alertLog);
 
-    // Status bar
-    const statusBar = document.createElement('div');
-    statusBar.className = 'status-bar';
+    // Status Bar
+    const statusBar = document.createElement('section');
+    statusBar.className = 'neu-extruded rounded-[20px] lg:rounded-[24px] p-3 lg:p-4 panel flex-shrink-0';
+    statusBar.setAttribute('aria-label', 'Device status');
     statusBar.innerHTML = `
-      <div class="status-bar__row">
-        <span class="status-bar__row-icon">${SVG_MIC}</span>
-        <span class="status-bar__row-label">Mic</span>
-        <span class="status-bar__row-value">
-          <span class="status-bar__dot status-bar__dot--inactive" id="mic-status-dot"></span>
-          <span id="mic-status-text">Inactive</span>
-        </span>
-      </div>
-      <div class="status-bar__row">
-        <span class="status-bar__row-icon">${SVG_CAM}</span>
-        <span class="status-bar__row-label">Cam</span>
-        <span class="status-bar__row-value">
-          <span class="status-bar__dot status-bar__dot--inactive" id="cam-status-dot"></span>
-          <span id="cam-status-text">Inactive</span>
-        </span>
+      <h2 class="font-jakarta font-bold text-base text-fg tracking-tight mb-3">Device Status</h2>
+      <div class="flex flex-col gap-2.5">
+        <div class="flex items-center gap-3">
+          <div class="neu-extruded-sm rounded-[10px] w-8 h-8 flex items-center justify-center flex-shrink-0">
+            <iconify-icon icon="lucide:camera" class="text-muted text-base"></iconify-icon>
+          </div>
+          <div class="flex-1 min-w-0">
+            <p class="font-dm text-[9px] font-bold uppercase tracking-[0.08em] text-muted">Camera</p>
+            <p class="font-dm text-xs font-medium text-fg truncate" id="cam-status-name">None</p>
+          </div>
+          <div class="flex items-center gap-1.5 flex-shrink-0">
+            <span id="cam-status-dot" class="status-inactive w-2 h-2 rounded-full"></span>
+            <span id="cam-status-text" class="font-dm text-[9px] font-bold uppercase text-muted">Inactive</span>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <div class="neu-extruded-sm rounded-[10px] w-8 h-8 flex items-center justify-center flex-shrink-0">
+            <iconify-icon icon="lucide:mic" class="text-muted text-base"></iconify-icon>
+          </div>
+          <div class="flex-1 min-w-0">
+            <p class="font-dm text-[9px] font-bold uppercase tracking-[0.08em] text-muted">Microphone</p>
+            <p class="font-dm text-xs font-medium text-fg truncate" id="mic-status-name">None</p>
+          </div>
+          <div class="flex items-center gap-1.5 flex-shrink-0">
+            <span id="mic-status-dot" class="status-inactive w-2 h-2 rounded-full"></span>
+            <span id="mic-status-text" class="font-dm text-[9px] font-bold uppercase text-muted">Inactive</span>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <div class="neu-extruded-sm rounded-[10px] w-8 h-8 flex items-center justify-center flex-shrink-0">
+            <iconify-icon icon="lucide:cpu" class="text-muted text-base"></iconify-icon>
+          </div>
+          <div class="flex-1 min-w-0">
+            <p class="font-dm text-[9px] font-bold uppercase tracking-[0.08em] text-muted">Inference</p>
+            <p class="font-dm text-xs font-medium text-fg">WebGPU · local</p>
+          </div>
+          <div class="flex items-center gap-1.5 flex-shrink-0">
+            <span class="status-active w-2 h-2 rounded-full"></span>
+            <span class="font-dm text-[9px] font-bold uppercase text-teal">Fast</span>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <div class="neu-extruded-sm rounded-[10px] w-8 h-8 flex items-center justify-center flex-shrink-0">
+            <iconify-icon icon="lucide:wifi" class="text-muted text-base"></iconify-icon>
+          </div>
+          <div class="flex-1 min-w-0">
+            <p class="font-dm text-[9px] font-bold uppercase tracking-[0.08em] text-muted">Network</p>
+            <p class="font-dm text-xs font-medium text-fg">Offline mode</p>
+          </div>
+          <div class="flex items-center gap-1.5 flex-shrink-0">
+            <span class="w-2 h-2 rounded-full bg-[#A0AEC0]"></span>
+            <span class="font-dm text-[9px] font-bold uppercase text-muted">Local</span>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <div class="neu-inset-sm rounded-[10px] w-8 h-8 flex items-center justify-center flex-shrink-0">
+            <iconify-icon icon="lucide:gamepad-2" class="text-muted text-base"></iconify-icon>
+          </div>
+          <div class="flex-1 min-w-0">
+            <p class="font-dm text-[9px] font-bold uppercase tracking-[0.08em] text-muted">Game Hook</p>
+            <p class="font-dm text-xs font-medium text-fg">Universal</p>
+          </div>
+          <div class="flex items-center gap-1.5 flex-shrink-0">
+            <span id="gamehook-status-dot" class="live-dot w-2 h-2 rounded-full"></span>
+            <span id="gamehook-status-text" class="font-dm text-[9px] font-bold uppercase" style="color: var(--rage-current-color)">Synced</span>
+          </div>
+        </div>
       </div>
     `;
     right.appendChild(statusBar);
 
-    // ── Footer ──────────────────────────────────────────
+    grid.appendChild(right);
+    wrapper.appendChild(grid);
+
+    // ── Footer Session Controls ──────────────────────────
     const footer = document.createElement('footer');
-    footer.className = 'dashboard-footer';
-    const controlsContainer = document.createElement('div');
-    controlsContainer.id = 'controls-container';
-    footer.appendChild(controlsContainer);
+    footer.id = 'controls-container';
+    wrapper.appendChild(footer);
 
-    // Assemble grid
-    dashboard.appendChild(header);
-    dashboard.appendChild(sidebar);
-    dashboard.appendChild(main);
-    dashboard.appendChild(right);
-    dashboard.appendChild(footer);
-
-    app.appendChild(dashboard);
+    app.appendChild(wrapper);
 
     // ── Screen reader announcer ─────────────────────────
     const announcer = document.createElement('div');
@@ -271,10 +491,39 @@ class RageRadarApp {
     });
     this._webcamPreview = new WebcamPreview(document.getElementById('webcam-container'));
 
+    // Mobile Menu
+    this._mobileMenu = new MobileMenu({
+      onHistory: () => this._onSessionHistory(),
+      onSettings: () => this._settingsPanel.open(),
+    });
+
+    const hamburgerBtn = document.getElementById('hamburger-btn');
+    if (hamburgerBtn) {
+      hamburgerBtn.addEventListener('click', () => {
+        this._mobileMenu.open();
+      });
+    }
+
     // Settings button in header
     document.getElementById('btn-settings').addEventListener('click', () => {
       this._settingsPanel.toggle();
     });
+
+    // Notification bell in header
+    const notificationBtn = document.getElementById('notification-btn');
+    if (notificationBtn) {
+      notificationBtn.addEventListener('click', () => {
+        const notifDot = document.getElementById('notif-dot');
+        if (notifDot) notifDot.style.display = 'none';
+
+        const alertLog = document.querySelector('.alert-log');
+        if (alertLog) {
+          alertLog.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          alertLog.classList.add('neu-hover');
+          setTimeout(() => alertLog.classList.remove('neu-hover'), 1500);
+        }
+      });
+    }
   }
 
   // ─── Module Initialization ──────────────────────────────
@@ -305,8 +554,8 @@ class RageRadarApp {
 
   _subscribeEvents() {
     // Camera events → status bar
-    this._unsubCamStarted = eventBus.on('camera:started', () => {
-      this._updateCamStatus('active');
+    this._unsubCamStarted = eventBus.on('camera:started', (data) => {
+      this._updateCamStatus('active', data?.label);
     });
     this._unsubCamStopped = eventBus.on('camera:stopped', () => {
       this._updateCamStatus('inactive');
@@ -318,8 +567,8 @@ class RageRadarApp {
     });
 
     // Mic events → status bar
-    this._unsubMicStarted = eventBus.on('mic:started', () => {
-      this._updateMicStatus('active');
+    this._unsubMicStarted = eventBus.on('mic:started', (data) => {
+      this._updateMicStatus('active', data?.label);
     });
     this._unsubMicStopped = eventBus.on('mic:stopped', () => {
       this._updateMicStatus('inactive');
@@ -336,6 +585,43 @@ class RageRadarApp {
       this._announceRageLevel(score);
       if (this._isActive) {
         this._sessionDataPoints.push(score);
+      }
+
+      // Update inline stats in the timeline panel
+      const currentVal = document.getElementById('timeline-current-val');
+      if (currentVal) {
+        currentVal.textContent = Math.round(score.smoothed);
+        currentVal.style.color = 'var(--rage-current-color)';
+      }
+
+      // Update 60s Avg
+      const avgVal = document.getElementById('timeline-avg-val');
+      if (avgVal && this._sessionDataPoints.length > 0) {
+        const scores = this._sessionDataPoints.map(p => p.smoothed);
+        const avg = scores.reduce((a, b) => a + b, 0) / scores.length;
+        avgVal.textContent = Math.round(avg);
+      }
+
+      // Update Volatility (standard deviation of rolling window)
+      const volatilityVal = document.getElementById('timeline-volatility-val');
+      if (volatilityVal && this._sessionDataPoints.length > 1) {
+        const scores = this._sessionDataPoints.map(p => p.smoothed);
+        const avg = scores.reduce((a, b) => a + b, 0) / scores.length;
+        const squareDiffs = scores.map(s => Math.pow(s - avg, 2));
+        const avgSquareDiff = squareDiffs.reduce((a, b) => a + b, 0) / squareDiffs.length;
+        const stdDev = Math.sqrt(avgSquareDiff);
+        volatilityVal.textContent = (Math.round(stdDev * 10) / 10).toFixed(1);
+      } else if (volatilityVal) {
+        volatilityVal.textContent = '0.0';
+      }
+
+      // Update events frequency
+      const frequencyVal = document.getElementById('timeline-frequency-val');
+      if (frequencyVal) {
+        const now = Date.now();
+        const recentPoints = this._sessionDataPoints.filter(p => now - p.timestamp < 5000);
+        const fps = recentPoints.length / 5;
+        frequencyVal.textContent = (Math.round(fps * 10) / 10).toFixed(1) + ' events/s';
       }
     });
 
@@ -354,7 +640,7 @@ class RageRadarApp {
       this._startTimer();
       this._updateLiveBadge('LIVE');
     });
-    this._unsubSessStopped = eventBus.on('session:stopped', (data) => {
+    this._unsubSessStopped = eventBus.on('session:stopped', async (data) => {
       this._isActive = false;
       this._stopTimer();
       this._elapsedSeconds = 0;
@@ -362,11 +648,14 @@ class RageRadarApp {
       this._updateLiveBadge('WAITING');
       this._updateStats(data.stats);
       this._sessionDataPoints = [];
+      await this._loadLastSessionStats();
     });
 
     // Alert triggered → add to alert log
     this._unsubAlert = eventBus.on('alert:triggered', (alertData) => {
       this._addAlertLogEntry(alertData);
+      const notifDot = document.getElementById('notif-dot');
+      if (notifDot) notifDot.style.display = 'block';
     });
 
     // Settings changed → propagate to modules
@@ -383,6 +672,10 @@ class RageRadarApp {
 
       // 1. Start session manager FIRST — sets up data collection
       await this._sessionManager.start();
+      const session = this._sessionManager.currentSession;
+      if (session) {
+        this._controls.setSessionId(session.id);
+      }
       this._isActive = true;
       this._sessionStartTime = Date.now();
       this._elapsedSeconds = 0;
@@ -473,6 +766,7 @@ class RageRadarApp {
 
   _updateTimerDisplay() {
     const timerEl = document.getElementById('session-timer');
+    const timerMobileEl = document.getElementById('session-timer-mobile');
     if (!timerEl) return;
 
     const m = Math.floor(this._elapsedSeconds / 60);
@@ -480,12 +774,30 @@ class RageRadarApp {
     const h = Math.floor(m / 60);
     const displayM = m % 60;
 
-    const text = h > 0
-      ? `${String(h).padStart(2, '0')}:${String(displayM).padStart(2, '0')}:${String(s).padStart(2, '0')}`
-      : `${String(displayM).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+    const pad = (num) => String(num).padStart(2, '0');
+    const timeStr = h > 0
+      ? `${pad(h)}:${pad(displayM)}:${pad(s)}`
+      : `${pad(displayM)}:${pad(s)}`;
 
-    timerEl.textContent = text;
+    timerEl.textContent = timeStr;
+    if (timerMobileEl) timerMobileEl.textContent = timeStr;
     timerEl.setAttribute('aria-label', `Session duration: ${h > 0 ? `${h} hours ` : ''}${displayM} minutes and ${s} seconds`);
+
+    // Update Session Insights duration details
+    const subtitle = document.getElementById('insights-duration-subtitle');
+    if (subtitle) {
+      const durationParts = [];
+      if (h > 0) durationParts.push(`${h}h`);
+      if (displayM > 0 || h > 0) durationParts.push(`${displayM}m`);
+      durationParts.push(`${s}s`);
+      subtitle.textContent = `Aggregated from ${durationParts.join(' ')} of tracking`;
+    }
+
+    const badge = document.getElementById('insights-duration-badge');
+    if (badge) {
+      const minVal = Math.max(1, Math.round(this._elapsedSeconds / 60));
+      badge.textContent = `${minVal} min`;
+    }
   }
 
   _resetTimerDisplay() {
@@ -506,10 +818,28 @@ class RageRadarApp {
     const max = Math.max(...scores);
     const spikes = scores.filter(s => s >= 80).length;
 
+    let maxTime = null;
+    let maxVal = -1;
+    this._sessionDataPoints.forEach(p => {
+      if (p.smoothed > maxVal) {
+        maxVal = p.smoothed;
+        maxTime = p.timestamp;
+      }
+    });
+
+    const histogram = Array(10).fill(0);
+    this._sessionDataPoints.forEach(p => {
+      const bin = Math.min(9, Math.floor(p.smoothed / 10));
+      histogram[bin]++;
+    });
+
     this._updateStats({
       avg: Math.round(avg * 10) / 10,
       max: Math.round(max * 10) / 10,
       spikes,
+      spikesPercent: Math.round((spikes / scores.length) * 100),
+      maxTime,
+      histogram,
     });
   }
 
@@ -524,46 +854,114 @@ class RageRadarApp {
       avgVal.textContent = stats.avg != null ? Math.round(stats.avg) : '--';
     }
     if (avgLabel) {
+      let trendHTML = '';
+      if (this._lastSessionStats && this._lastSessionStats.avg > 0) {
+        const diff = stats.avg - this._lastSessionStats.avg;
+        const percent = Math.round((Math.abs(diff) / this._lastSessionStats.avg) * 100);
+        if (diff > 0) {
+          trendHTML = ` <span style="color:var(--error);font-weight:bold;margin-left:4px">▲ +${percent}%</span>`;
+        } else if (diff < 0) {
+          trendHTML = ` <span style="color:var(--teal);font-weight:bold;margin-left:4px">▼ -${percent}%</span>`;
+        } else {
+          trendHTML = ` <span style="color:var(--muted);margin-left:4px">■ 0%</span>`;
+        }
+      }
       const lvl = stats.avg != null ? getRageLevel(stats.avg).name : '--';
-      avgLabel.textContent = lvl;
+      avgLabel.innerHTML = lvl.toUpperCase() + trendHTML;
     }
     if (maxVal) {
       maxVal.textContent = stats.max != null ? Math.round(stats.max) : '--';
     }
     if (maxLabel) {
-      const lvl = stats.max != null ? getRageLevel(stats.max).name : '--';
-      maxLabel.textContent = lvl;
+      let timeStr = '--';
+      if (stats.maxTime) {
+        const d = new Date(stats.maxTime);
+        timeStr = d.toTimeString().split(' ')[0];
+      }
+      maxLabel.textContent = `Peak at ${timeStr}`;
     }
     if (spikesVal) {
       spikesVal.textContent = stats.spikes != null ? stats.spikes : '--';
+    }
+    const spikesLabel = document.getElementById('stat-spikes-label');
+    if (spikesLabel) {
+      spikesLabel.textContent = `${stats.spikesPercent ?? 0}% high`;
+    }
+    const spikesBar = document.getElementById('stat-spikes-bar');
+    if (spikesBar) {
+      spikesBar.style.width = `${stats.spikesPercent ?? 0}%`;
+    }
+
+    if (stats.histogram) {
+      const maxCount = Math.max(...stats.histogram);
+      const bars = document.querySelectorAll('#insights-histogram .histo-bar');
+      if (bars.length === 10) {
+        stats.histogram.forEach((count, idx) => {
+          const height = maxCount > 0 ? Math.round((count / maxCount) * 100) : 0;
+          bars[idx].style.height = `${height}%`;
+          bars[idx].setAttribute('title', `${count} samples`);
+        });
+      }
+    }
+  }
+
+  async _loadLastSessionStats() {
+    try {
+      const sessions = await this._sessionManager.getAllSessions();
+      const completedSessions = sessions.filter(s => s.status === 'completed' && s.id !== this._sessionManager.currentSession?.id);
+      if (completedSessions.length > 0) {
+        completedSessions.sort((a, b) => b.startedAt - a.startedAt);
+        this._lastSessionStats = completedSessions[0].stats;
+      } else {
+        this._lastSessionStats = null;
+      }
+    } catch (err) {
+      console.error('Failed to load last session stats:', err);
+      this._lastSessionStats = null;
     }
   }
 
   // ─── Status Bar ─────────────────────────────────────────
 
-  _updateMicStatus(status) {
+  _updateMicStatus(status, label = '') {
     const dot = document.getElementById('mic-status-dot');
     const text = document.getElementById('mic-status-text');
+    const name = document.getElementById('mic-status-name');
     if (!dot || !text) return;
 
     dot.className = 'status-bar__dot';
     const labels = { active: 'Active', inactive: 'Inactive', error: 'Error' };
-    if (status === 'active') dot.classList.add('status-bar__dot--active');
-    else if (status === 'error') dot.classList.add('status-bar__dot--error');
-    else dot.classList.add('status-bar__dot--inactive');
+    if (status === 'active') {
+      dot.classList.add('status-bar__dot--active');
+      if (name) name.textContent = label || 'Microphone';
+    } else if (status === 'error') {
+      dot.classList.add('status-bar__dot--error');
+      if (name) name.textContent = 'None';
+    } else {
+      dot.classList.add('status-bar__dot--inactive');
+      if (name) name.textContent = 'None';
+    }
     text.textContent = labels[status] || 'Inactive';
   }
 
-  _updateCamStatus(status) {
+  _updateCamStatus(status, label = '') {
     const dot = document.getElementById('cam-status-dot');
     const text = document.getElementById('cam-status-text');
+    const name = document.getElementById('cam-status-name');
     if (!dot || !text) return;
 
     dot.className = 'status-bar__dot';
     const labels = { active: 'Active', inactive: 'Inactive', error: 'Error' };
-    if (status === 'active') dot.classList.add('status-bar__dot--active');
-    else if (status === 'error') dot.classList.add('status-bar__dot--error');
-    else dot.classList.add('status-bar__dot--inactive');
+    if (status === 'active') {
+      dot.classList.add('status-bar__dot--active');
+      if (name) name.textContent = label || 'Camera';
+    } else if (status === 'error') {
+      dot.classList.add('status-bar__dot--error');
+      if (name) name.textContent = 'None';
+    } else {
+      dot.classList.add('status-bar__dot--inactive');
+      if (name) name.textContent = 'None';
+    }
     text.textContent = labels[status] || 'Inactive';
   }
 

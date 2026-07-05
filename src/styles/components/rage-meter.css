@@ -216,7 +216,7 @@
 }
 
 /* Responsive */
-@media (max-width: 1024px) {
+@media (max-width: 1279px) {
   .rage-meter-svg-container {
     width: 160px;
     height: 160px;

@@ -6,28 +6,52 @@
 /* ─── Extruded (raised) ─────────────────────────── */
 .neu-extruded {
   background: var(--clay);
-  box-shadow: 9px 9px 16px var(--shadow-dark), -9px -9px 16px var(--shadow-light);
+  box-shadow: 
+    3px 3px 6px rgba(163, 177, 198, 0.35), 
+    9px 9px 20px var(--shadow-dark), 
+    -3px -3px 6px rgba(255, 255, 255, 0.45), 
+    -9px -9px 20px var(--shadow-light);
 }
 .neu-extruded-sm {
   background: var(--clay);
-  box-shadow: 5px 5px 10px var(--shadow-dark), -5px -5px 10px var(--shadow-light);
+  box-shadow: 
+    2px 2px 4px rgba(163, 177, 198, 0.35), 
+    5px 5px 12px var(--shadow-dark), 
+    -2px -2px 4px rgba(255, 255, 255, 0.45), 
+    -5px -5px 12px var(--shadow-light);
 }
 .neu-hover {
-  box-shadow: 12px 12px 20px var(--shadow-dark-strong), -12px -12px 20px var(--shadow-light-strong);
+  box-shadow: 
+    4px 4px 8px rgba(163, 177, 198, 0.4), 
+    12px 12px 24px var(--shadow-dark-strong), 
+    -4px -4px 8px rgba(255, 255, 255, 0.5), 
+    -12px -12px 24px var(--shadow-light-strong);
 }
 
 /* ─── Inset (pressed / sunken) ──────────────────── */
 .neu-inset {
   background: var(--clay);
-  box-shadow: inset 6px 6px 10px var(--shadow-dark), inset -6px -6px 10px var(--shadow-light);
+  box-shadow: 
+    inset 2px 2px 4px rgba(163, 177, 198, 0.35), 
+    inset 6px 6px 12px var(--shadow-dark), 
+    inset -2px -2px 4px rgba(255, 255, 255, 0.45), 
+    inset -6px -6px 12px var(--shadow-light);
 }
 .neu-inset-deep {
   background: var(--clay);
-  box-shadow: inset 10px 10px 20px var(--shadow-dark-strong), inset -10px -10px 20px var(--shadow-light-strong);
+  box-shadow: 
+    inset 3px 3px 6px rgba(163, 177, 198, 0.4), 
+    inset 10px 10px 24px var(--shadow-dark-strong), 
+    inset -3px -3px 6px rgba(255, 255, 255, 0.5), 
+    inset -10px -10px 24px var(--shadow-light-strong);
 }
 .neu-inset-sm {
   background: var(--clay);
-  box-shadow: inset 3px 3px 6px var(--shadow-dark), inset -3px -3px 6px var(--shadow-light);
+  box-shadow: 
+    inset 1px 1px 2px rgba(163, 177, 198, 0.35), 
+    inset 3px 3px 8px var(--shadow-dark), 
+    inset -1px -1px 2px rgba(255, 255, 255, 0.45), 
+    inset -3px -3px 8px var(--shadow-light);
 }
 
 /* ─── Rage Meter Glow (extruded + dynamic glow) ──── */
@@ -60,7 +84,11 @@
 /* ─── Buttons ────────────────────────────────────── */
 .neu-btn {
   background: var(--clay);
-  box-shadow: 5px 5px 10px var(--shadow-dark), -5px -5px 10px var(--shadow-light);
+  box-shadow: 
+    2px 2px 4px rgba(163, 177, 198, 0.35), 
+    5px 5px 12px var(--shadow-dark), 
+    -2px -2px 4px rgba(255, 255, 255, 0.45), 
+    -5px -5px 12px var(--shadow-light);
   border: none;
   cursor: pointer;
   font-family: var(--font-body);
@@ -71,11 +99,19 @@
 }
 .neu-btn:hover {
   transform: translateY(-1px);
-  box-shadow: 6px 6px 14px var(--shadow-dark-strong), -6px -6px 14px var(--shadow-light-strong);
+  box-shadow: 
+    3px 3px 6px rgba(163, 177, 198, 0.4), 
+    6px 6px 16px var(--shadow-dark-strong), 
+    -3px -3px 6px rgba(255, 255, 255, 0.5), 
+    -6px -6px 16px var(--shadow-light-strong);
 }
 .neu-btn:active {
   transform: translateY(0.5px);
-  box-shadow: inset 3px 3px 6px var(--shadow-dark), inset -3px -3px 6px var(--shadow-light);
+  box-shadow: 
+    inset 1px 1px 2px rgba(163, 177, 198, 0.35), 
+    inset 3px 3px 8px var(--shadow-dark), 
+    inset -1px -1px 2px rgba(255, 255, 255, 0.45), 
+    inset -3px -3px 8px var(--shadow-light);
 }
 
 .neu-btn-primary {
@@ -85,7 +121,11 @@
   cursor: pointer;
   font-family: var(--font-body);
   font-weight: var(--weight-bold);
-  box-shadow: 5px 5px 10px var(--shadow-dark), -5px -5px 10px var(--shadow-light);
+  box-shadow: 
+    2px 2px 4px rgba(163, 177, 198, 0.35), 
+    5px 5px 12px var(--shadow-dark), 
+    -2px -2px 4px rgba(255, 255, 255, 0.45), 
+    -5px -5px 12px var(--shadow-light);
   transition: transform .25s ease-out, box-shadow .25s ease-out, background .25s ease-out;
   display: inline-flex;
   align-items: center;
@@ -93,11 +133,19 @@
 .neu-btn-primary:hover {
   transform: translateY(-1px);
   background: var(--violet-light);
-  box-shadow: 6px 6px 14px var(--shadow-dark-strong), -6px -6px 14px var(--shadow-light-strong);
+  box-shadow: 
+    3px 3px 6px rgba(163, 177, 198, 0.4), 
+    6px 6px 16px var(--shadow-dark-strong), 
+    -3px -3px 6px rgba(255, 255, 255, 0.5), 
+    -6px -6px 16px var(--shadow-light-strong);
 }
 .neu-btn-primary:active {
   transform: translateY(0.5px);
-  box-shadow: inset 3px 3px 6px rgba(108, 99, 255, 0.4), inset -3px -3px 6px var(--shadow-light);
+  box-shadow: 
+    inset 1px 1px 2px rgba(108, 99, 255, 0.3), 
+    inset 3px 3px 8px rgba(108, 99, 255, 0.4), 
+    inset -1px -1px 2px rgba(255, 255, 255, 0.45), 
+    inset -3px -3px 8px var(--shadow-light);
 }
 
 /* ─── Soft Divider ───────────────────────────────── */
@@ -171,7 +219,7 @@
 /* ─── Histogram Bars ─────────────────────────────── */
 .histo-bar {
   transition: height .5s cubic-bezier(.34, 1.56, .64, 1);
-  border-radius: 9999px 9999px 4px 4px;
+  border-radius: 6px 6px 2px 2px;
 }
 
 /* ─── Webcam Overlay Glow ────────────────────────── */

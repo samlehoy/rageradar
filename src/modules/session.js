@@ -144,7 +144,7 @@ export class SessionManager {
   /** @private */
   _computeStats() {
     const points = this.currentSession.dataPoints;
-    if (points.length === 0) return { avg: 0, max: 0, spikes: 0, duration: 0 };
+    if (points.length === 0) return { avg: 0, max: 0, spikes: 0, duration: 0, spikesPercent: 0, maxTime: null, histogram: Array(10).fill(0) };
 
     const scores = points.map(p => p.smoothed);
     const avg = scores.reduce((a, b) => a + b, 0) / scores.length;
@@ -152,11 +152,29 @@ export class SessionManager {
     const spikes = scores.filter(s => s >= 80).length;
     const duration = (this.currentSession.endedAt ?? Date.now()) - this.currentSession.startedAt;
 
+    let maxTime = null;
+    let maxVal = -1;
+    points.forEach(p => {
+      if (p.smoothed > maxVal) {
+        maxVal = p.smoothed;
+        maxTime = p.timestamp;
+      }
+    });
+
+    const histogram = Array(10).fill(0);
+    points.forEach(p => {
+      const bin = Math.min(9, Math.floor(p.smoothed / 10));
+      histogram[bin]++;
+    });
+
     return {
       avg: Math.round(avg * 10) / 10,
       max: Math.round(max * 10) / 10,
       spikes,
       duration,
+      spikesPercent: Math.round((spikes / scores.length) * 100),
+      maxTime,
+      histogram,
     };
   }
 

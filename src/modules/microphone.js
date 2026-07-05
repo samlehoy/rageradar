@@ -48,7 +48,10 @@ export class MicrophoneModule {
 
       this.isRunning = true;
       this._startAnalysisLoop();
-      eventBus.emit('mic:started');
+
+      const track = typeof this.stream.getAudioTracks === 'function' ? this.stream.getAudioTracks()[0] : null;
+      const label = track ? track.label : 'Microphone';
+      eventBus.emit('mic:started', { label });
     } catch (err) {
       eventBus.emit('mic:error', { error: err.message });
       throw err;

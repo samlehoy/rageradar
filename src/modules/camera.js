@@ -43,7 +43,10 @@ export class CameraModule {
       await this.loadModels();
       this.isRunning = true;
       this._startDetectionLoop();
-      eventBus.emit('camera:started');
+
+      const track = typeof this.stream.getVideoTracks === 'function' ? this.stream.getVideoTracks()[0] : null;
+      const label = track ? track.label : 'Webcam';
+      eventBus.emit('camera:started', { label });
     } catch (err) {
       eventBus.emit('camera:error', { error: err.message });
       throw err;

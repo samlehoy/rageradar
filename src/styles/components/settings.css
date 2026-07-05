@@ -14,9 +14,9 @@
   transition: visibility 0s var(--transition-base);
 }
 
-.settings-wrapper--ready {
+.settings-wrapper--open {
   visibility: visible;
-  pointer-events: auto;
+  transition: none;
 }
 
 /* ─── Backdrop ─────────────────────────────────────── */
@@ -55,6 +55,7 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  pointer-events: auto;
 }
 
 .settings-panel--open {

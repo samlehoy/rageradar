@@ -161,7 +161,15 @@ describe('SessionManager', () => {
     it('should return zeros for no data points', async () => {
       await manager.start();
       const stats = manager._computeStats();
-      expect(stats).toEqual({ avg: 0, max: 0, spikes: 0, duration: 0 });
+      expect(stats).toEqual({
+        avg: 0,
+        max: 0,
+        spikes: 0,
+        duration: 0,
+        spikesPercent: 0,
+        maxTime: null,
+        histogram: Array(10).fill(0),
+      });
     });
 
     it('should compute correct avg, max, spikes, duration', async () => {
