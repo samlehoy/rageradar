@@ -4,6 +4,7 @@ import { SessionTimeline } from './ui/timeline.js';
 import { FusionEngine } from './modules/fusion.js';
 import { AlertSystem } from './modules/alerts.js';
 import { ToastManager } from './ui/toast.js';
+import { SettingsPanel } from './ui/settings.js';
 
 const app = document.querySelector('#app');
 
@@ -36,11 +37,19 @@ const timeline = new SessionTimeline(timelineCanvas);
 const alerts = new AlertSystem();
 const toasts = new ToastManager();
 
+// Settings panel
+const settings = new SettingsPanel();
+window.__settings = settings;
+
+// Expose settings toggle globally (can be wired to a button later)
+window.toggleSettings = () => settings.toggle();
+
 // Expose for dev console testing
 window.__meter = meter;
 window.__timeline = timeline;
 window.__alerts = alerts;
 window.__toasts = toasts;
+window.__settingsPanel = settings;
 
 // Optional: start engine if camera available
 if (typeof navigator !== 'undefined' && navigator.mediaDevices?.getUserMedia) {
