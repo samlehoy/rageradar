@@ -252,6 +252,7 @@ class RageRadarApp {
     this._controls = new SessionControls(document.getElementById('controls-container'), {
       onStart: () => this._onSessionStart(),
       onPause: () => this._onSessionPause(),
+      onResume: () => this._onSessionResume(),
       onStop: () => this._onSessionStop(),
       onHistory: () => this._onSessionHistory(),
     });
@@ -269,7 +270,9 @@ class RageRadarApp {
     this._camera = new CameraModule({
       detectionFps: this._settings.camera.detectionFps || 30,
     });
-    this._microphone = new MicrophoneModule();
+    this._microphone = new MicrophoneModule({
+      noiseGateDB: this._settings.microphone.noiseGateDB ?? -50,
+    });
     this._fusion = new FusionEngine({
       faceWeight: this._settings.fusion.faceWeight,
       audioWeight: this._settings.fusion.audioWeight,
@@ -396,7 +399,11 @@ class RageRadarApp {
       this._camera.pause();
       this._microphone.pause();
       this._timerRunning = false;
-    } else if (this._sessionManager.currentSession?.status === 'paused') {
+    }
+  }
+
+  async _onSessionResume() {
+    if (this._sessionManager.currentSession?.status === 'paused') {
       this._sessionManager.resume();
       this._camera.resume();
       this._microphone.resume();
@@ -642,7 +649,12 @@ class RageRadarApp {
 
     // Update camera module
     if (this._camera) {
-      this._camera.detectionFps = settings.camera.detectionFps || 30;
+      this._camera.detectionFps = settings.camera.detectionFps ?? 10;
+    }
+
+    // Update microphone module
+    if (this._microphone) {
+      this._microphone.noiseGateDB = settings.microphone.noiseGateDB ?? -50;
     }
 
     // Update fusion engine

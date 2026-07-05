@@ -28,6 +28,7 @@ export class SessionControls {
    * @param {Object} [callbacks]
    * @param {Function} [callbacks.onStart]
    * @param {Function} [callbacks.onPause]
+   * @param {Function} [callbacks.onResume]
    * @param {Function} [callbacks.onStop]
    * @param {Function} [callbacks.onHistory]
    */
@@ -167,7 +168,7 @@ export class SessionControls {
 
   _handleStart() {
     if (this._state === 'paused') {
-      this._callbacks.onPause?.();  // Actually resume
+      this._callbacks.onResume?.();
     } else if (this._state === 'idle') {
       this._setState('starting');
       this._callbacks.onStart?.();
