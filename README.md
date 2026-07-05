@@ -139,14 +139,6 @@ Deployment routes and configurations are defined in `wrangler.toml` and served v
 
 ---
 
-## Contributors
-
-- **Native Muttaqien** ([@samlehoy](https://github.com/samlehoy))
-- **Claude** (AI Coding Assistant)
-- **Antigravity** (AI Coding Assistant by Google DeepMind)
-
----
-
 ## License
 
 This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
