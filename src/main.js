@@ -268,7 +268,7 @@ class RageRadarApp {
 
   _initModules() {
     this._camera = new CameraModule({
-      detectionFps: this._settings.camera.detectionFps || 30,
+      detectionFps: this._settings.camera.detectionFps ?? 10,
     });
     this._microphone = new MicrophoneModule({
       noiseGateDB: this._settings.microphone.noiseGateDB ?? -50,

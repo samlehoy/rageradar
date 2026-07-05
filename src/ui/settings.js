@@ -299,10 +299,16 @@ export class SettingsPanel {
   open() {
     if (this._isOpen) return;
     this._isOpen = true;
+    // Remember the element that triggered the open, so we can return focus on close
+    this._previouslyFocused = document.activeElement;
     this._panel.classList.add('settings-panel--open');
     this._backdrop.classList.add('settings-backdrop--visible');
     this._panel.setAttribute('aria-hidden', 'false');
     document.addEventListener('keydown', this._boundHandleKeydown);
+    // Move focus into the panel — prefer the close button (always present)
+    requestAnimationFrame(() => {
+      this._closeBtn?.focus();
+    });
     eventBus.emit('settings:open');
   }
 
@@ -316,6 +322,11 @@ export class SettingsPanel {
     this._backdrop.classList.remove('settings-backdrop--visible');
     this._panel.setAttribute('aria-hidden', 'true');
     document.removeEventListener('keydown', this._boundHandleKeydown);
+    // Return focus to the trigger element if it's still focusable
+    if (this._previouslyFocused && typeof this._previouslyFocused.focus === 'function') {
+      this._previouslyFocused.focus();
+      this._previouslyFocused = null;
+    }
     eventBus.emit('settings:close');
   }
 
