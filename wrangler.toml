@@ -1,0 +1,4 @@
+name = "rageradar"
+main = "src/worker.js"
+assets = { directory = "./dist" }
+compatibility_date = "2024-09-19"
