@@ -6,8 +6,6 @@ RageRadar uses your webcam and microphone to detect rising frustration in real-t
 
 This application is designed as a single-window viewport-locked dashboard for desktop screens, presenting a clean console layout with responsive sizing, a custom neumorphic interface, and zero external server dependencies.
 
-Live Demo: [https://rageradar.muttaqien0111.workers.dev](https://rageradar.muttaqien0111.workers.dev)
-
 ---
 
 ## Features
@@ -134,7 +132,7 @@ Deployment routes and configurations are defined in `wrangler.toml` and served v
 ## Development Guidelines
 
 - **TDD Workflow:** Standard implementation follows a test-driven development cycle. All core features should have corresponding tests in the `tests/` directory.
-- **Git Rules:** The `.gitignore` excludes metadata and local configuration directories: `@docs`, `docs/`, `.agents/`, `.claude/`, `.superpowers/`, and `.superdesign/`. Do not commit these files to the repository.
+- **Git Rules:** The `.gitignore` excludes documentation, metadata, and local agent configuration directories. Do not commit these files to the repository.
 - **RTK Proxying:** All developer operations (testing, building, deployment) should be executed through the token-optimized RTK proxy to maintain efficiency.
 
 ---
