@@ -7,14 +7,14 @@ const STORAGE_KEY = 'rageradar_settings';
 
 const DEFAULT_SETTINGS = {
   camera: {
-    detectionFps: 30,
+    detectionFps: 10,
     showPreview: true,
     showOverlay: true,
   },
   microphone: {
     volumeWeight: 0.5,
     pitchWeight: 0.3,
-    noiseGate: 0.05,
+    noiseGateDB: -50,
   },
   fusion: {
     faceWeight: 0.65,
@@ -24,14 +24,15 @@ const DEFAULT_SETTINGS = {
   },
   alerts: {
     enabled: true,
-    threshold: 60,
-    cooldownSeconds: 5,
-    soundType: 'default',
-    volume: 0.7,
+    threshold: 70,
+    cooldownMs: 30000,
+    soundEnabled: true,
+    soundType: 'beep',
+    volume: 0.5,
   },
   sensitivity: {
-    overall: 1.0,
-    decaySpeed: 0.9,
+    overall: 0.5,
+    decaySpeed: 0.5,
   },
 };
 

@@ -95,7 +95,7 @@ function buildPanelHTML() {
   const micHTML = buildSectionHTML('microphone', 'Microphone', [
     rangeSlider({ section: 'microphone', key: 'volumeWeight', label: 'Volume Weight', min: 0, max: 1, step: 0.05, value: s.microphone.volumeWeight }),
     rangeSlider({ section: 'microphone', key: 'pitchWeight', label: 'Pitch Weight', min: 0, max: 1, step: 0.05, value: s.microphone.pitchWeight }),
-    rangeSlider({ section: 'microphone', key: 'noiseGate', label: 'Noise Gate', min: 0, max: 0.5, step: 0.01, value: s.microphone.noiseGate }),
+    rangeSlider({ section: 'microphone', key: 'noiseGateDB', label: 'Noise Gate (dB)', min: -100, max: 0, step: 1, value: s.microphone.noiseGateDB, unit: ' dB' }),
   ]);
 
   const fusionHTML = buildSectionHTML('fusion', 'Fusion', [
@@ -108,14 +108,14 @@ function buildPanelHTML() {
   const alertsHTML = buildSectionHTML('alerts', 'Alerts', [
     toggleSwitch({ section: 'alerts', key: 'enabled', label: 'Enable Alerts', value: s.alerts.enabled }),
     rangeSlider({ section: 'alerts', key: 'threshold', label: 'Threshold', min: 0, max: 100, step: 1, value: s.alerts.threshold, unit: '%' }),
-    rangeSlider({ section: 'alerts', key: 'cooldownSeconds', label: 'Cooldown', min: 1, max: 60, step: 1, value: s.alerts.cooldownSeconds, unit: 's' }),
+    rangeSlider({ section: 'alerts', key: 'cooldownMs', label: 'Cooldown', min: 5000, max: 120000, step: 1000, value: s.alerts.cooldownMs, unit: ' ms' }),
+    toggleSwitch({ section: 'alerts', key: 'soundEnabled', label: 'Alert Sound', value: s.alerts.soundEnabled }),
     selectDropdown({
       section: 'alerts', key: 'soundType', label: 'Sound', value: s.alerts.soundType,
       options: [
-        { value: 'default', label: 'Default' },
-        { value: 'alert', label: 'Alert' },
+        { value: 'beep', label: 'Beep' },
         { value: 'alarm', label: 'Alarm' },
-        { value: 'none', label: 'None' },
+        { value: 'gaming', label: 'Gaming' },
       ],
     }),
     rangeSlider({ section: 'alerts', key: 'volume', label: 'Sound Volume', min: 0, max: 1, step: 0.05, value: s.alerts.volume }),

@@ -279,7 +279,7 @@ class RageRadarApp {
     this._alerts = new AlertSystem({
       enabled: this._settings.alerts.enabled,
       threshold: this._settings.alerts.threshold,
-      cooldownMs: (this._settings.alerts.cooldownSeconds || 5) * 1000,
+      cooldownMs: this._settings.alerts.cooldownMs || 30000,
       soundType: this._settings.alerts.soundType || 'beep',
       volume: this._settings.alerts.volume ?? 0.5,
     });
@@ -660,7 +660,7 @@ class RageRadarApp {
       this._alerts.updateConfig({
         enabled: settings.alerts.enabled,
         threshold: settings.alerts.threshold,
-        cooldownMs: (settings.alerts.cooldownSeconds || 5) * 1000,
+        cooldownMs: settings.alerts.cooldownMs || 30000,
         soundType: settings.alerts.soundType || 'beep',
         volume: settings.alerts.volume ?? 0.5,
       });
