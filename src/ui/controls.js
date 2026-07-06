@@ -43,7 +43,7 @@ export class SessionControls {
   }
 
   _render() {
-    this.container.className = 'mt-3 lg:mt-4 neu-extruded rounded-[20px] lg:rounded-[24px] p-3 panel flex-shrink-0';
+    this.container.className = 'mt-3 lg:mt-4 neu-extruded rounded-[20px] lg:rounded-[24px] p-3 lg:p-4 panel flex-shrink-0';
     this.container.setAttribute('role', 'toolbar');
     this.container.setAttribute('aria-label', 'Session controls');
 

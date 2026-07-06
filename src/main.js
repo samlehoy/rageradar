@@ -107,7 +107,7 @@ class RageRadarApp {
 
     // ── Header ──────────────────────────────────────────
     const header = document.createElement('header');
-    header.className = 'neu-extruded rounded-[20px] lg:rounded-[24px] p-3 panel mb-3 lg:mb-4 flex-shrink-0';
+    header.className = 'neu-extruded rounded-[20px] lg:rounded-[24px] p-3 lg:p-4 panel mb-3 lg:mb-4 flex-shrink-0';
     header.setAttribute('role', 'banner');
     header.setAttribute('aria-label', 'Dashboard header');
     header.innerHTML = `
@@ -164,7 +164,7 @@ class RageRadarApp {
 
     // ── Left Sidebar (Rage Meter + Webcam Preview + Device Status) ──────
     const sidebar = document.createElement('aside');
-    sidebar.className = 'flex flex-col gap-3 lg:gap-4 min-w-0 lg:h-full lg:overflow-visible lg:pr-1';
+    sidebar.className = 'flex flex-col gap-3 lg:gap-4 min-w-0 lg:h-full lg:overflow-visible';
     sidebar.setAttribute('aria-label', 'Sidebar');
     
     const meterContainer = document.createElement('div');
@@ -179,7 +179,7 @@ class RageRadarApp {
 
     // ── Main Panel (Rage Timeline + Session Insights) ──
     const main = document.createElement('main');
-    main.className = 'flex flex-col gap-3 lg:gap-4 min-w-0 lg:h-full lg:overflow-visible lg:pr-1';
+    main.className = 'flex flex-col gap-3 lg:gap-4 min-w-0 lg:h-full lg:overflow-visible';
     main.setAttribute('aria-label', 'Main content');
 
     // Timeline panel
