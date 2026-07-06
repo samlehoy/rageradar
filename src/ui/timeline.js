@@ -12,17 +12,24 @@ const MAX_POINTS = 120;
 export class SessionTimeline {
   /**
    * @param {HTMLCanvasElement} canvas
+   * @param {Object} [options]
+   * @param {Array<RageScore>} [options.historicalData]
    */
-  constructor(canvas) {
+  constructor(canvas, options = {}) {
     this._canvas = canvas;
     this._latestScore = 0;
     this._chart = null;
+    this._options = options;
 
     this._createChart();
-    this._subscribe();
 
-    // Start 1-second interval for real-time scrolling
-    this._timer = setInterval(() => this._tick(), 1000);
+    if (options.historicalData && options.historicalData.length > 0) {
+      this._loadHistoricalData(options.historicalData);
+    } else {
+      this._subscribe();
+      // Start 1-second interval for real-time scrolling
+      this._timer = setInterval(() => this._tick(), 1000);
+    }
   }
 
   /**
@@ -80,7 +87,18 @@ export class SessionTimeline {
         },
         plugins: {
           legend: { display: false },
-          tooltip: { enabled: false },
+          tooltip: {
+            enabled: !!this._options.historicalData,
+            callbacks: {
+              title(context) {
+                const val = context[0].parsed.x;
+                return new Date(val).toLocaleTimeString();
+              },
+              label(context) {
+                return `Rage Score: ${context.parsed.y}`;
+              }
+            }
+          },
         },
         scales: {
           x: {
@@ -173,6 +191,30 @@ export class SessionTimeline {
     this._unsub = eventBus.on('fusion:score', (data) => {
       this._latestScore = data.smoothed ?? data.raw ?? 0;
     });
+  }
+
+  _loadHistoricalData(points) {
+    if (!this._chart) return;
+
+    const dataset = this._chart.data.datasets[0];
+    const thresholdDs = this._chart.data.datasets[1];
+
+    dataset.data = points.map(pt => ({ x: pt.timestamp, y: pt.smoothed }));
+    thresholdDs.data = points.map(pt => ({ x: pt.timestamp, y: 60 }));
+
+    if (points.length > 0) {
+      const firstTime = points[0].timestamp;
+      const lastTime = points[points.length - 1].timestamp;
+
+      this._chart.options.scales.x.min = firstTime;
+      this._chart.options.scales.x.max = lastTime;
+    }
+
+    // Update dataset border color dynamically
+    const avgScore = points.reduce((acc, p) => acc + p.smoothed, 0) / (points.length || 1);
+    dataset.borderColor = getRageColor(avgScore);
+
+    this._chart.update();
   }
 
   /**

@@ -25,6 +25,8 @@ import { SettingsPanel } from './ui/settings.js';
 import { WebcamPreview } from './ui/webcam-preview.js';
 import { SessionControls } from './ui/controls.js';
 import { MobileMenu } from './ui/mobile-menu.js';
+import { SessionHistory } from './ui/session-history.js';
+import { SessionSummaryModal } from './ui/session-summary.js';
 
 // ─── SVG icons (inline, minimal) ──────────────────────
 
@@ -63,6 +65,8 @@ class RageRadarApp {
     this._settingsPanel = null;
     this._webcamPreview = null;
     this._controls = null;
+    this._sessionHistory = null;
+    this._summaryModal = null;
 
     // State
     this._sessionStartTime = 0;
@@ -372,7 +376,7 @@ class RageRadarApp {
         <div class="alert-log__empty text-xs text-muted p-4 text-center">No alerts yet. Start a session to begin monitoring.</div>
       </div>
 
-      <button class="mt-3 w-full neu-inset rounded-[12px] py-2.5 font-dm text-xs font-bold uppercase tracking-wider text-muted flex items-center justify-center gap-1.5">
+      <button id="alert-view-history" class="mt-3 w-full neu-inset rounded-[12px] py-2.5 font-dm text-xs font-bold uppercase tracking-wider text-muted flex items-center justify-center gap-1.5 hover:scale-[1.01] active:scale-[0.99] transition-all neu-btn">
         <iconify-icon icon="lucide:list" class="text-sm"></iconify-icon>
         View full history
       </button>
@@ -490,6 +494,14 @@ class RageRadarApp {
       onHistory: () => this._onSessionHistory(),
     });
     this._webcamPreview = new WebcamPreview(document.getElementById('webcam-container'));
+    this._sessionHistory = new SessionHistory(this._sessionManager);
+    this._summaryModal = new SessionSummaryModal(this._sessionManager);
+
+    // Alert view history button wiring
+    const alertHistoryBtn = document.getElementById('alert-view-history');
+    if (alertHistoryBtn) {
+      alertHistoryBtn.addEventListener('click', () => this._onSessionHistory());
+    }
 
     // Mobile Menu
     this._mobileMenu = new MobileMenu({
@@ -722,10 +734,20 @@ class RageRadarApp {
       this._controls.setState('stopping');
       this._camera.stop();
       this._microphone.stop();
-      await this._sessionManager.stop();
+      const completedSession = await this._sessionManager.stop();
       this._isActive = false;
 
       this._announce('Session stopped.');
+
+      if (completedSession) {
+        const choice = await this._summaryModal.show(completedSession);
+        if (choice === 'discard') {
+          await this._loadLastSessionStats();
+          this._announce('Session discarded.');
+        } else {
+          this._announce('Session saved.');
+        }
+      }
     } catch (err) {
       console.error('Failed to stop session:', err);
       this._controls.setState('idle');
@@ -734,7 +756,9 @@ class RageRadarApp {
 
   _onSessionHistory() {
     this._announce('Opening session history...');
-    // Placeholder — real implementation would show a modal/overlay with past sessions
+    if (this._sessionHistory) {
+      this._sessionHistory.open();
+    }
   }
 
   // ─── Timer ──────────────────────────────────────────────
