@@ -103,7 +103,7 @@ class RageRadarApp {
 
     // Create wrapper aligned with max-width container of target design
     const wrapper = document.createElement('div');
-    wrapper.className = 'relative max-w-[1920px] mx-auto p-3 lg:p-4 z-[1] lg:h-[100dvh] lg:flex lg:flex-col lg:overflow-y-auto lg:overflow-x-hidden neu-scroll';
+    wrapper.className = 'relative w-full max-w-[1920px] mx-auto p-3 lg:px-6 lg:py-4 z-[1] lg:h-[100dvh] lg:flex lg:flex-col lg:overflow-y-auto neu-scroll';
 
     // ── Header ──────────────────────────────────────────
     const header = document.createElement('header');
