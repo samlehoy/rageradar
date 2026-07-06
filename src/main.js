@@ -159,7 +159,7 @@ class RageRadarApp {
 
     // ── Main Dashboard Grid ─────────────────────────────
     const grid = document.createElement('div');
-    grid.className = 'grid grid-cols-1 lg:grid-cols-[240px_1fr] 2xl:grid-cols-[280px_1fr_300px] gap-3 lg:gap-4 lg:flex-1 lg:min-h-0';
+    grid.className = 'grid grid-cols-1 lg:grid-cols-[240px_1fr] 2xl:grid-cols-[280px_1fr_300px] gap-3 lg:gap-4 lg:flex-1';
     grid.id = 'dashboard-grid';
 
     // ── Left Sidebar (Rage Meter + Webcam Preview + Device Status) ──────
