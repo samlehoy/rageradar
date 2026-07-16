@@ -34,6 +34,14 @@ const DEFAULT_SETTINGS = {
     overall: 0.5,
     decaySpeed: 0.5,
   },
+  cooldown: {
+    enabled: true,
+    threshold: 70,
+    sustainedDurationMs: 60000,
+    suggestionCooldownMs: 300000,
+    autoShow: false,
+    technique: '4-7-8',
+  },
 };
 
 /**

@@ -29,6 +29,9 @@ import { SessionHistory } from './ui/session-history.js';
 import { SessionSummaryModal } from './ui/session-summary.js';
 import { AnalyticsEngine } from './modules/analytics.js';
 import { AnalyticsDashboard } from './ui/analytics-dashboard.js';
+import { CooldownEngine } from './modules/cooldown.js';
+import { BreathingOverlay } from './ui/breathing-overlay.js';
+import { BreakReminder } from './ui/break-reminder.js';
 
 // ─── SVG icons (inline, minimal) ──────────────────────
 
@@ -71,6 +74,9 @@ class RageRadarApp {
     this._summaryModal = null;
     this._analyticsEngine = null;
     this._analyticsDashboard = null;
+    this._cooldownEngine = null;
+    this._breathingOverlay = null;
+    this._breakReminder = null;
 
     // State
     this._sessionStartTime = 0;
@@ -517,6 +523,19 @@ class RageRadarApp {
     this._analyticsDashboard = new AnalyticsDashboard(this._analyticsEngine);
     document.getElementById('btn-analytics')?.addEventListener('click', () => this._onOpenAnalytics());
 
+    // Cooldown system
+    const settings = loadSettings();
+    this._cooldownEngine = new CooldownEngine(settings.cooldown || {});
+    this._breathingOverlay = new BreathingOverlay();
+    this._breakReminder = new BreakReminder({
+      onTakeBreak: () => this._startBreathingExercise(),
+      onSnooze: () => {},
+      onDismiss: () => this._cooldownEngine.recordDismissal('break'),
+    });
+
+    // Wire cooldown suggestions
+    eventBus.on('cooldown:suggestion', (data) => this._handleCooldownSuggestion(data));
+
     // Alert view history button wiring
     const alertHistoryBtn = document.getElementById('alert-view-history');
     if (alertHistoryBtn) {
@@ -744,6 +763,11 @@ class RageRadarApp {
       await this._camera.start(videoEl);
 
       eventBus.emit('app:session-active', true);
+
+      // Start cooldown monitoring
+      if (this._cooldownEngine) {
+        this._cooldownEngine.start();
+      }
     } catch (err) {
       console.error('Failed to start session:', err);
       this._isActive = false;
@@ -779,6 +803,11 @@ class RageRadarApp {
       const completedSession = await this._sessionManager.stop();
       this._isActive = false;
 
+      // Stop cooldown monitoring
+      if (this._cooldownEngine) {
+        this._cooldownEngine.stop();
+      }
+
       this._announce('Session stopped.');
 
       if (completedSession) {
@@ -807,6 +836,39 @@ class RageRadarApp {
     this._announce('Opening analytics dashboard...');
     if (this._analyticsDashboard) {
       this._analyticsDashboard.open();
+    }
+  }
+
+  _handleCooldownSuggestion(data) {
+    if (data.type === 'breathing') {
+      if (this._cooldownEngine._config.autoShow) {
+        this._startBreathingExercise();
+      } else {
+        this._breakReminder.show('Your rage has been high for a while. Try a breathing exercise.');
+      }
+    } else if (data.type === 'break') {
+      this._breakReminder.show('Consider taking a short break to reset.');
+    } else {
+      this._breakReminder.show(data.message || 'Take a moment to relax.');
+    }
+  }
+
+  async _startBreathingExercise() {
+    if (!this._breathingOverlay) return;
+    this._breakReminder.dismiss();
+    const technique = this._cooldownEngine?._config?.technique || '4-7-8';
+    this._cooldownEngine?.recordStart('breathing');
+
+    const result = await this._breathingOverlay.show({ technique, rounds: 4 });
+
+    // Get current rage score for effectiveness tracking
+    const currentScore = this._fusion?.lastScore?.smoothed || 0;
+    if (result.completed) {
+      this._cooldownEngine?.recordCompletion('breathing', currentScore);
+      this._toasts?.showSuccess?.('Breathing exercise complete! 🧘') ||
+        this._announce('Breathing exercise complete!');
+    } else {
+      this._cooldownEngine?.recordDismissal('breathing');
     }
   }
 
