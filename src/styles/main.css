@@ -300,6 +300,46 @@ body {
   position: absolute;
 }
 
+/* ─── Compact Mode (≤480px) ──────────────────── */
+@media (max-width: 480px) {
+  #app {
+    min-width: 300px;
+  }
+
+  /* Tighter padding */
+  .p-3 { padding: 0.5rem !important; }
+  .gap-3 { gap: 0.5rem !important; }
+
+  /* Hide session insights in compact mode */
+  [aria-label="Session statistics"] {
+    display: none;
+  }
+
+  /* Shrink header */
+  header[role="banner"] {
+    padding: 0.5rem !important;
+  }
+  header[role="banner"] h1 {
+    font-size: 1rem !important;
+  }
+
+  /* Stack timeline stats vertically */
+  .grid.grid-cols-1.sm\:grid-cols-3 {
+    grid-template-columns: 1fr !important;
+    gap: 0.375rem !important;
+  }
+}
+
+/* ─── Tablet Mode (641px–1023px) ───────────── */
+@media (min-width: 641px) and (max-width: 1023px) {
+  /* 2-column grid for right panel items */
+  [aria-label="Right panel"] {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+  }
+}
+
 /* ─── Reduced Motion ──────────────────────────── */
 
 @media (prefers-reduced-motion: reduce) {
