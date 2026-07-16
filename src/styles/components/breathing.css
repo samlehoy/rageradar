@@ -1,0 +1,456 @@
+/* ═══════════════════════════════════════════════════
+   Breathing Overlay & Break Reminder
+   Neumorphic clay-palette components for Phase 2.
+   ═══════════════════════════════════════════════════ */
+
+/* ─── Phase color custom properties ──────────────── */
+:root {
+  --breathing-inhale: #7c3aed;
+  --breathing-inhale-glow: rgba(124, 58, 237, 0.45);
+  --breathing-hold: #f59e0b;
+  --breathing-hold-glow: rgba(245, 158, 11, 0.45);
+  --breathing-exhale: #22c55e;
+  --breathing-exhale-glow: rgba(34, 197, 94, 0.45);
+}
+
+/* ═══════════════════════════════════════════════════
+   1. Breathing Overlay
+   ═══════════════════════════════════════════════════ */
+
+.breathing-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  opacity: 0;
+  animation: breathing-overlay-in 400ms ease-out forwards;
+}
+
+.breathing-overlay--closing {
+  animation: breathing-overlay-out 300ms ease-in forwards;
+}
+
+@keyframes breathing-overlay-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes breathing-overlay-out {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+
+/* ─── Content card ───────────────────────────────── */
+
+.breathing-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-6);
+  padding: var(--space-10) var(--space-8);
+  background: var(--clay);
+  border-radius: var(--radius-xl);
+  box-shadow:
+    9px 9px 20px var(--shadow-dark),
+    -9px -9px 20px var(--shadow-light);
+  max-width: 420px;
+  width: 90vw;
+  animation: breathing-card-in 500ms cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes breathing-card-in {
+  from { opacity: 0; transform: scale(0.88) translateY(24px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* ─── Round indicator ────────────────────────────── */
+
+.breathing-round {
+  font-family: var(--font-heading);
+  font-size: var(--text-h3);
+  font-weight: var(--weight-semibold);
+  color: var(--muted);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* ─── Circle container ───────────────────────────── */
+
+.breathing-circle-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 200px;
+  height: 200px;
+}
+
+.breathing-circle {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at 40% 38%,
+    var(--breathing-inhale) 0%,
+    rgba(124, 58, 237, 0.25) 60%,
+    transparent 100%
+  );
+  box-shadow: 0 0 40px var(--breathing-inhale-glow);
+  will-change: transform;
+  transform: scale(1);
+  /* transition is set dynamically by JS */
+}
+
+/* Phase-specific gradient & glow overrides */
+.breathing-circle--inhale {
+  background: radial-gradient(
+    circle at 40% 38%,
+    var(--breathing-inhale) 0%,
+    rgba(124, 58, 237, 0.25) 60%,
+    transparent 100%
+  );
+  box-shadow: 0 0 40px var(--breathing-inhale-glow);
+}
+
+.breathing-circle--hold {
+  background: radial-gradient(
+    circle at 40% 38%,
+    var(--breathing-hold) 0%,
+    rgba(245, 158, 11, 0.25) 60%,
+    transparent 100%
+  );
+  box-shadow: 0 0 40px var(--breathing-hold-glow);
+}
+
+.breathing-circle--exhale {
+  background: radial-gradient(
+    circle at 40% 38%,
+    var(--breathing-exhale) 0%,
+    rgba(34, 197, 94, 0.25) 60%,
+    transparent 100%
+  );
+  box-shadow: 0 0 40px var(--breathing-exhale-glow);
+}
+
+/* ─── Phase label & timer (centered over circle) ── */
+
+.breathing-phase-label {
+  position: relative;
+  z-index: 1;
+  font-family: var(--font-heading);
+  font-size: var(--text-h1);
+  font-weight: var(--weight-bold);
+  color: #fff;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+  pointer-events: none;
+  text-align: center;
+  line-height: 1.2;
+}
+
+.breathing-timer {
+  position: absolute;
+  bottom: 28px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1;
+  font-family: var(--font-mono);
+  font-size: var(--text-h2);
+  font-weight: var(--weight-bold);
+  color: rgba(255, 255, 255, 0.8);
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+  pointer-events: none;
+}
+
+/* ─── Progress bar ───────────────────────────────── */
+
+.breathing-progress {
+  width: 100%;
+  height: 10px;
+  border-radius: var(--radius-full);
+  box-shadow:
+    inset 2px 2px 4px rgba(163, 177, 198, 0.35),
+    inset 6px 6px 12px var(--shadow-dark),
+    inset -2px -2px 4px rgba(255, 255, 255, 0.45),
+    inset -6px -6px 12px var(--shadow-light);
+  background: var(--clay);
+  overflow: hidden;
+}
+
+.breathing-progress-bar {
+  height: 100%;
+  width: 0%;
+  border-radius: var(--radius-full);
+  background: linear-gradient(90deg, var(--breathing-inhale), var(--violet-light));
+  transition: width 0.4s linear;
+}
+
+/* ─── Controls ───────────────────────────────────── */
+
+.breathing-controls {
+  display: flex;
+  gap: var(--space-4);
+  width: 100%;
+  justify-content: center;
+}
+
+.breathing-skip,
+.breathing-stop {
+  background: var(--clay);
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: var(--text-small);
+  font-weight: var(--weight-bold);
+  color: var(--muted);
+  padding: var(--space-2) var(--space-5);
+  border-radius: var(--radius-md);
+  box-shadow:
+    2px 2px 4px rgba(163, 177, 198, 0.35),
+    5px 5px 12px var(--shadow-dark),
+    -2px -2px 4px rgba(255, 255, 255, 0.45),
+    -5px -5px 12px var(--shadow-light);
+  transition: transform 0.25s ease-out, box-shadow 0.25s ease-out, color 0.25s ease-out;
+}
+
+.breathing-skip:hover,
+.breathing-stop:hover {
+  transform: translateY(-1px);
+  color: var(--fg);
+  box-shadow:
+    3px 3px 6px rgba(163, 177, 198, 0.4),
+    6px 6px 16px var(--shadow-dark-strong),
+    -3px -3px 6px rgba(255, 255, 255, 0.5),
+    -6px -6px 16px var(--shadow-light-strong);
+}
+
+.breathing-skip:active,
+.breathing-stop:active {
+  transform: translateY(0.5px);
+  box-shadow:
+    inset 1px 1px 2px rgba(163, 177, 198, 0.35),
+    inset 3px 3px 8px var(--shadow-dark),
+    inset -1px -1px 2px rgba(255, 255, 255, 0.45),
+    inset -3px -3px 8px var(--shadow-light);
+}
+
+.breathing-stop {
+  color: var(--error);
+}
+.breathing-stop:hover {
+  color: var(--error);
+}
+
+/* ═══════════════════════════════════════════════════
+   2. Break Reminder Banner
+   ═══════════════════════════════════════════════════ */
+
+.break-reminder {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: var(--z-toast);
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-4) var(--space-6);
+  background: var(--clay);
+  box-shadow:
+    0 6px 16px var(--shadow-dark),
+    0 -2px 6px var(--shadow-light);
+  transform: translateY(-100%);
+  animation: break-reminder-in 500ms cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.break-reminder--closing {
+  animation: break-reminder-out 300ms ease-in forwards;
+}
+
+@keyframes break-reminder-in {
+  from { transform: translateY(-100%); }
+  to   { transform: translateY(0); }
+}
+
+@keyframes break-reminder-out {
+  from { transform: translateY(0); }
+  to   { transform: translateY(-100%); }
+}
+
+.break-reminder__message {
+  flex: 1;
+  font-family: var(--font-body);
+  font-size: var(--text-body);
+  font-weight: var(--weight-medium);
+  color: var(--fg);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.break-reminder__message::before {
+  content: '🧘';
+  font-size: 1.25em;
+}
+
+.break-reminder__actions {
+  display: flex;
+  gap: var(--space-3);
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.break-reminder__take-break {
+  background: var(--violet);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: var(--text-small);
+  font-weight: var(--weight-bold);
+  padding: var(--space-2) var(--space-5);
+  border-radius: var(--radius-md);
+  box-shadow:
+    2px 2px 4px rgba(163, 177, 198, 0.35),
+    5px 5px 12px var(--shadow-dark),
+    -2px -2px 4px rgba(255, 255, 255, 0.45),
+    -5px -5px 12px var(--shadow-light);
+  transition: transform 0.25s ease-out, box-shadow 0.25s ease-out, background 0.25s ease-out;
+}
+
+.break-reminder__take-break:hover {
+  transform: translateY(-1px);
+  background: var(--violet-light);
+  box-shadow:
+    3px 3px 6px rgba(163, 177, 198, 0.4),
+    6px 6px 16px var(--shadow-dark-strong),
+    -3px -3px 6px rgba(255, 255, 255, 0.5),
+    -6px -6px 16px var(--shadow-light-strong);
+}
+
+.break-reminder__take-break:active {
+  transform: translateY(0.5px);
+  box-shadow:
+    inset 1px 1px 2px rgba(108, 99, 255, 0.3),
+    inset 3px 3px 8px rgba(108, 99, 255, 0.4),
+    inset -1px -1px 2px rgba(255, 255, 255, 0.45),
+    inset -3px -3px 8px var(--shadow-light);
+}
+
+.break-reminder__snooze {
+  background: var(--clay);
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: var(--text-small);
+  font-weight: var(--weight-bold);
+  color: var(--muted);
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-md);
+  box-shadow:
+    2px 2px 4px rgba(163, 177, 198, 0.35),
+    5px 5px 12px var(--shadow-dark),
+    -2px -2px 4px rgba(255, 255, 255, 0.45),
+    -5px -5px 12px var(--shadow-light);
+  transition: transform 0.25s ease-out, box-shadow 0.25s ease-out, color 0.25s ease-out;
+}
+
+.break-reminder__snooze:hover {
+  transform: translateY(-1px);
+  color: var(--fg);
+  box-shadow:
+    3px 3px 6px rgba(163, 177, 198, 0.4),
+    6px 6px 16px var(--shadow-dark-strong),
+    -3px -3px 6px rgba(255, 255, 255, 0.5),
+    -6px -6px 16px var(--shadow-light-strong);
+}
+
+.break-reminder__snooze:active {
+  transform: translateY(0.5px);
+  box-shadow:
+    inset 1px 1px 2px rgba(163, 177, 198, 0.35),
+    inset 3px 3px 8px var(--shadow-dark),
+    inset -1px -1px 2px rgba(255, 255, 255, 0.45),
+    inset -3px -3px 8px var(--shadow-light);
+}
+
+.break-reminder__dismiss {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.1rem;
+  color: var(--muted);
+  padding: var(--space-1);
+  border-radius: var(--radius-sm);
+  transition: color 0.2s ease-out, transform 0.2s ease-out;
+  line-height: 1;
+}
+
+.break-reminder__dismiss:hover {
+  color: var(--fg);
+  transform: scale(1.15);
+}
+
+/* ═══════════════════════════════════════════════════
+   3. Responsive
+   ═══════════════════════════════════════════════════ */
+
+@media (max-width: 640px) {
+  .breathing-circle-container {
+    width: 150px;
+    height: 150px;
+  }
+
+  .breathing-phase-label {
+    font-size: var(--text-h2);
+  }
+
+  .breathing-timer {
+    bottom: 20px;
+    font-size: var(--text-h3);
+  }
+
+  .breathing-content {
+    padding: var(--space-6) var(--space-4);
+    gap: var(--space-4);
+  }
+
+  .break-reminder {
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    padding: var(--space-3) var(--space-4);
+  }
+
+  .break-reminder__actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}
+
+/* ═══════════════════════════════════════════════════
+   4. Reduced Motion
+   ═══════════════════════════════════════════════════ */
+
+@media (prefers-reduced-motion: reduce) {
+  .breathing-overlay,
+  .breathing-content,
+  .break-reminder {
+    animation: none !important;
+  }
+
+  .breathing-overlay {
+    opacity: 1;
+  }
+
+  .break-reminder {
+    transform: translateY(0);
+  }
+
+  .breathing-circle {
+    transition: none !important;
+  }
+}
