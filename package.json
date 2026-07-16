@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "chart.js": "^4.5.1",
+    "chartjs-chart-matrix": "^3.0.5",
     "face-api.js": "^0.22.2",
     "idb": "^8.0.3",
     "luxon": "^3.7.2"
