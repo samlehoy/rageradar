@@ -27,6 +27,8 @@ import { SessionControls } from './ui/controls.js';
 import { MobileMenu } from './ui/mobile-menu.js';
 import { SessionHistory } from './ui/session-history.js';
 import { SessionSummaryModal } from './ui/session-summary.js';
+import { AnalyticsEngine } from './modules/analytics.js';
+import { AnalyticsDashboard } from './ui/analytics-dashboard.js';
 
 // ─── SVG icons (inline, minimal) ──────────────────────
 
@@ -67,6 +69,8 @@ class RageRadarApp {
     this._controls = null;
     this._sessionHistory = null;
     this._summaryModal = null;
+    this._analyticsEngine = null;
+    this._analyticsDashboard = null;
 
     // State
     this._sessionStartTime = 0;
@@ -151,6 +155,10 @@ class RageRadarApp {
           <button id="notification-btn" class="neu-btn w-11 h-11 rounded-full flex items-center justify-center relative" aria-label="Notifications">
             <iconify-icon icon="lucide:bell" class="text-muted text-lg"></iconify-icon>
             <span id="notif-dot" class="absolute top-2.5 right-2.5 w-2 h-2 rounded-full bg-[var(--rage-current-color)] shadow-[var(--rage-current-glow)]" style="display:none"></span>
+          </button>
+          
+          <button id="btn-analytics" class="neu-btn w-11 h-11 rounded-full flex items-center justify-center" aria-label="Open analytics" title="Analytics">
+            <iconify-icon icon="lucide:bar-chart-3" class="text-muted text-lg"></iconify-icon>
           </button>
           
           <button id="btn-settings" class="settings-btn neu-btn w-11 h-11 rounded-full flex items-center justify-center" aria-label="Open settings" title="Settings (Comma)">
@@ -504,6 +512,11 @@ class RageRadarApp {
     this._sessionHistory = new SessionHistory(this._sessionManager);
     this._summaryModal = new SessionSummaryModal(this._sessionManager);
 
+    // Analytics
+    this._analyticsEngine = new AnalyticsEngine(this._sessionManager);
+    this._analyticsDashboard = new AnalyticsDashboard(this._analyticsEngine);
+    document.getElementById('btn-analytics')?.addEventListener('click', () => this._onOpenAnalytics());
+
     // Alert view history button wiring
     const alertHistoryBtn = document.getElementById('alert-view-history');
     if (alertHistoryBtn) {
@@ -787,6 +800,13 @@ class RageRadarApp {
     this._announce('Opening session history...');
     if (this._sessionHistory) {
       this._sessionHistory.open();
+    }
+  }
+
+  _onOpenAnalytics() {
+    this._announce('Opening analytics dashboard...');
+    if (this._analyticsDashboard) {
+      this._analyticsDashboard.open();
     }
   }
 
