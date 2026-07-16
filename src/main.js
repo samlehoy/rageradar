@@ -32,6 +32,8 @@ import { AnalyticsDashboard } from './ui/analytics-dashboard.js';
 import { CooldownEngine } from './modules/cooldown.js';
 import { BreathingOverlay } from './ui/breathing-overlay.js';
 import { BreakReminder } from './ui/break-reminder.js';
+import { ClipRecorder } from './modules/clip-recorder.js';
+import { ClipGallery } from './ui/clip-gallery.js';
 
 // ─── SVG icons (inline, minimal) ──────────────────────
 
@@ -77,6 +79,8 @@ class RageRadarApp {
     this._cooldownEngine = null;
     this._breathingOverlay = null;
     this._breakReminder = null;
+    this._clipRecorder = null;
+    this._clipGallery = null;
 
     // State
     this._sessionStartTime = 0;
@@ -165,6 +169,10 @@ class RageRadarApp {
           
           <button id="btn-analytics" class="neu-btn w-11 h-11 rounded-full flex items-center justify-center" aria-label="Open analytics" title="Analytics">
             <iconify-icon icon="lucide:bar-chart-3" class="text-muted text-lg"></iconify-icon>
+          </button>
+          
+          <button id="btn-clips" class="neu-btn w-11 h-11 rounded-full flex items-center justify-center" aria-label="Open rage clips" title="Rage Clips">
+            <iconify-icon icon="lucide:film" class="text-muted text-lg"></iconify-icon>
           </button>
           
           <button id="btn-settings" class="settings-btn neu-btn w-11 h-11 rounded-full flex items-center justify-center" aria-label="Open settings" title="Settings (Comma)">
@@ -536,6 +544,12 @@ class RageRadarApp {
     // Wire cooldown suggestions
     eventBus.on('cooldown:suggestion', (data) => this._handleCooldownSuggestion(data));
 
+    // Clip recording system
+    this._clipRecorder = new ClipRecorder(settings.clips || {});
+    await this._clipRecorder.init();
+    this._clipGallery = new ClipGallery(this._clipRecorder);
+    document.getElementById('btn-clips')?.addEventListener('click', () => this._onOpenClips());
+
     // Alert view history button wiring
     const alertHistoryBtn = document.getElementById('alert-view-history');
     if (alertHistoryBtn) {
@@ -768,6 +782,11 @@ class RageRadarApp {
       if (this._cooldownEngine) {
         this._cooldownEngine.start();
       }
+
+      // Start clip recording from camera stream
+      if (this._clipRecorder && this._camera.stream) {
+        this._clipRecorder.startRecording(this._camera.stream);
+      }
     } catch (err) {
       console.error('Failed to start session:', err);
       this._isActive = false;
@@ -808,6 +827,11 @@ class RageRadarApp {
         this._cooldownEngine.stop();
       }
 
+      // Stop clip recording
+      if (this._clipRecorder) {
+        this._clipRecorder.stopRecording();
+      }
+
       this._announce('Session stopped.');
 
       if (completedSession) {
@@ -836,6 +860,13 @@ class RageRadarApp {
     this._announce('Opening analytics dashboard...');
     if (this._analyticsDashboard) {
       this._analyticsDashboard.open();
+    }
+  }
+
+  _onOpenClips() {
+    this._announce('Opening rage clips...');
+    if (this._clipGallery) {
+      this._clipGallery.open();
     }
   }
 
