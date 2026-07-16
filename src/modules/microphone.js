@@ -53,7 +53,7 @@ export class MicrophoneModule {
       const label = track ? track.label : 'Microphone';
       eventBus.emit('mic:started', { label });
     } catch (err) {
-      eventBus.emit('mic:error', { error: err.message });
+      eventBus.emit('mic:error', { error: err.message, errorName: err.name || 'UnknownError' });
       throw err;
     }
   }

@@ -572,10 +572,21 @@ class RageRadarApp {
     this._unsubCamStopped = eventBus.on('camera:stopped', () => {
       this._updateCamStatus('inactive');
     });
-    this._unsubCamError = eventBus.on('camera:error', ({ error }) => {
+    this._unsubCamError = eventBus.on('camera:error', ({ error, errorName }) => {
       this._updateCamStatus('error');
       this._announce(`Camera error: ${error}`);
       console.error('Camera error:', error);
+
+      const guidance = {
+        NotAllowedError: 'Camera permission was denied. Click the lock icon in your browser\'s address bar to allow camera access, then try again.',
+        NotFoundError: 'No camera detected. Please connect a webcam and refresh the page.',
+        NotReadableError: 'Camera is in use by another application. Close other apps using the camera and try again.',
+      };
+      this._toasts.showError({
+        title: 'Camera Unavailable',
+        message: guidance[errorName] || `Camera error: ${error}. Check your device and try again.`,
+        errorName,
+      });
     });
 
     // Mic events → status bar
@@ -585,10 +596,21 @@ class RageRadarApp {
     this._unsubMicStopped = eventBus.on('mic:stopped', () => {
       this._updateMicStatus('inactive');
     });
-    this._unsubMicError = eventBus.on('mic:error', ({ error }) => {
+    this._unsubMicError = eventBus.on('mic:error', ({ error, errorName }) => {
       this._updateMicStatus('error');
       this._announce(`Microphone error: ${error}`);
       console.error('Microphone error:', error);
+
+      const guidance = {
+        NotAllowedError: 'Microphone permission was denied. Click the lock icon in your browser\'s address bar to allow mic access, then try again.',
+        NotFoundError: 'No microphone detected. Please connect a microphone and refresh the page.',
+        NotReadableError: 'Microphone is in use by another application. Close other apps using the mic and try again.',
+      };
+      this._toasts.showError({
+        title: 'Microphone Unavailable',
+        message: guidance[errorName] || `Microphone error: ${error}. Check your device and try again.`,
+        errorName,
+      });
     });
 
     // Fusion score → update stats and timeline live badge

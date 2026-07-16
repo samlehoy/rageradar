@@ -163,6 +163,17 @@
   to   { width: 0%; }
 }
 
+/* ── Error toast ────────────────────────────────── */
+.toast--error {
+  border-left: 3px solid #ef4444;
+}
+.toast--error .toast__icon {
+  color: #ef4444;
+}
+.toast--error .toast__title {
+  color: #dc2626;
+}
+
 /* ─── Responsive ────────────────────────────────────── */
 
 @media (max-width: 640px) {

@@ -48,7 +48,7 @@ export class CameraModule {
       const label = track ? track.label : 'Webcam';
       eventBus.emit('camera:started', { label });
     } catch (err) {
-      eventBus.emit('camera:error', { error: err.message });
+      eventBus.emit('camera:error', { error: err.message, errorName: err.name || 'UnknownError' });
       throw err;
     }
   }

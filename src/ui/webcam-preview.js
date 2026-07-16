@@ -113,17 +113,13 @@ export class WebcamPreview {
     });
 
     // Camera error → show inline message
-    this._unsubError = eventBus.on('camera:error', ({ error }) => {
+    this._unsubError = eventBus.on('camera:error', ({ error, errorName }) => {
       const msgs = {
         'NotAllowedError': 'Camera permission denied. Allow camera access in browser settings.',
         'NotFoundError': 'No camera found. Connect a webcam and try again.',
         'NotReadableError': 'Camera is in use by another app. Close other apps and try again.',
       };
-      let msg = error;
-      for (const [err, label] of Object.entries(msgs)) {
-        if (error?.includes?.(err) || error?.name === err) { msg = label; break; }
-      }
-      if (typeof error === 'string' && !error.startsWith('Camera permission')) msg = 'Camera error: ' + error;
+      const msg = msgs[errorName] || `Camera error: ${error}`;
       this._showBanner(msg, 'error');
       this._setStatus('error');
     });

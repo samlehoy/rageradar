@@ -73,6 +73,47 @@ export class ToastManager {
   }
 
   /**
+   * Show an error toast with resolution guidance.
+   * @param {Object} opts
+   * @param {string} opts.title - Error title
+   * @param {string} opts.message - Resolution guidance
+   * @param {string} [opts.errorName] - DOMException name
+   * @returns {number} Toast ID
+   */
+  showError({ title, message, errorName } = {}) {
+    const id = ++this._counter;
+
+    if (this._toasts.size >= MAX_VISIBLE) {
+      const oldest = this._toasts.keys().next().value;
+      if (oldest != null) this._dismiss(oldest, true);
+    }
+
+    const el = document.createElement('div');
+    el.className = 'toast toast--error';
+    el.dataset.toastId = id;
+
+    el.innerHTML = `
+      <div class="toast__icon">⚠️</div>
+      <div class="toast__body">
+        <div class="toast__title">${title || 'Error'}</div>
+        <div class="toast__message">${message || ''}</div>
+      </div>
+      <button class="toast__close" aria-label="Dismiss"><iconify-icon icon="lucide:x"></iconify-icon></button>
+    `;
+
+    const closeBtn = el.querySelector('.toast__close');
+    closeBtn.addEventListener('click', () => this._dismiss(id));
+
+    // Error toasts dismiss after 8 seconds (longer than normal)
+    const timer = setTimeout(() => this._dismiss(id), 8000);
+
+    this._container.appendChild(el);
+    this._toasts.set(id, { element: el, timer, data: { title, message, errorName } });
+
+    return id;
+  }
+
+  /**
    * Dismiss a toast by ID.
    * @param {number} id
    * @param {boolean} [immediate=false]
