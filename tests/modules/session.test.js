@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import 'fake-indexeddb/auto';
 import { SessionManager } from '../../src/modules/session.js';
 import { eventBus } from '../../src/utils/event-bus.js';
+import { _resetDBPromise } from '../../src/utils/db.js';
 
 describe('SessionManager', () => {
   let manager;
@@ -22,6 +23,7 @@ describe('SessionManager', () => {
     // Close DB and delete to prevent state leaking between tests
     if (manager.db) {
       manager.db.close();
+      _resetDBPromise();
       await new Promise((resolve, reject) => {
         const req = indexedDB.deleteDatabase('rageradar');
         req.onsuccess = resolve;

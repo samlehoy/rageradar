@@ -1,8 +1,6 @@
-import { openDB } from 'idb';
 import { eventBus } from '../utils/event-bus.js';
+import { getDB } from '../utils/db.js';
 
-const DB_NAME = 'rageradar';
-const DB_VERSION = 1;
 const STORE_NAME = 'sessions';
 const SAVE_INTERVAL_MS = 5000; // Auto-save every 5 seconds
 
@@ -25,15 +23,7 @@ export class SessionManager {
   }
 
   async init() {
-    this.db = await openDB(DB_NAME, DB_VERSION, {
-      upgrade(db) {
-        if (!db.objectStoreNames.contains(STORE_NAME)) {
-          const store = db.createObjectStore(STORE_NAME, { keyPath: 'id' });
-          store.createIndex('startedAt', 'startedAt');
-          store.createIndex('status', 'status');
-        }
-      },
-    });
+    this.db = await getDB();
   }
 
   /**

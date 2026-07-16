@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import 'fake-indexeddb/auto';
 import { SessionManager } from '../../src/modules/session.js';
+import { _resetDBPromise } from '../../src/utils/db.js';
 import { SessionHistory } from '../../src/ui/session-history.js';
 import { SessionSummaryModal } from '../../src/ui/session-summary.js';
 import { eventBus } from '../../src/utils/event-bus.js';
@@ -55,6 +56,7 @@ describe('Session UI Components Integration', () => {
 
     if (manager.db) {
       manager.db.close();
+      _resetDBPromise();
       await new Promise((resolve, reject) => {
         const req = indexedDB.deleteDatabase('rageradar');
         req.onsuccess = resolve;
