@@ -1,14 +1,14 @@
 import { openDB } from 'idb';
 
 export const DB_NAME = 'rageradar';
-export const DB_VERSION = 2;
+export const DB_VERSION = 3;
 
 let dbPromise = null;
 
 /**
  * Returns a singleton promise that resolves to the shared IDB database.
- * Both SessionManager and ClipRecorder should use this instead of calling
- * openDB directly, so the upgrade logic lives in a single place.
+ * All modules should use this instead of calling openDB directly,
+ * so the upgrade logic lives in a single place.
  */
 export function getDB() {
   if (!dbPromise) {
@@ -25,6 +25,12 @@ export function getDB() {
           const clips = db.createObjectStore('clips', { keyPath: 'id' });
           clips.createIndex('sessionId', 'sessionId');
           clips.createIndex('timestamp', 'timestamp');
+        }
+        // v3: gameProfiles store
+        if (oldVersion < 3) {
+          const profiles = db.createObjectStore('gameProfiles', { keyPath: 'id' });
+          profiles.createIndex('name', 'name', { unique: true });
+          profiles.createIndex('createdAt', 'createdAt');
         }
       },
     });
