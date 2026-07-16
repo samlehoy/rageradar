@@ -99,6 +99,11 @@ export class SessionTimeline {
               }
             }
           },
+          decimation: {
+            enabled: true,
+            algorithm: 'lttb',
+            samples: 200,
+          },
         },
         scales: {
           x: {
