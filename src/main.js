@@ -34,6 +34,8 @@ import { BreathingOverlay } from './ui/breathing-overlay.js';
 import { BreakReminder } from './ui/break-reminder.js';
 import { ClipRecorder } from './modules/clip-recorder.js';
 import { ClipGallery } from './ui/clip-gallery.js';
+import { GameProfileManager } from './modules/game-profiles.js';
+import { ProfileSwitcher } from './ui/profile-switcher.js';
 
 // ─── SVG icons (inline, minimal) ──────────────────────
 
@@ -81,6 +83,8 @@ class RageRadarApp {
     this._breakReminder = null;
     this._clipRecorder = null;
     this._clipGallery = null;
+    this._gameProfileManager = null;
+    this._profileSwitcher = null;
 
     // State
     this._sessionStartTime = 0;
@@ -143,6 +147,7 @@ class RageRadarApp {
               <span class="text-fg">Rage</span><span class="text-violet">Radar</span>
             </h1>
           </div>
+          <div id="profile-indicator-container" class="hidden lg:flex"></div>
         </div>
 
         <!-- Session Timer -->
@@ -550,6 +555,15 @@ class RageRadarApp {
     this._clipGallery = new ClipGallery(this._clipRecorder);
     document.getElementById('btn-clips')?.addEventListener('click', () => this._onOpenClips());
 
+    // Game profiles system
+    this._gameProfileManager = new GameProfileManager();
+    await this._gameProfileManager.init();
+    this._profileSwitcher = new ProfileSwitcher(this._gameProfileManager);
+    const profileContainer = document.getElementById('profile-indicator-container');
+    if (profileContainer) {
+      this._profileSwitcher.renderHeaderIndicator(profileContainer);
+    }
+
     // Alert view history button wiring
     const alertHistoryBtn = document.getElementById('alert-view-history');
     if (alertHistoryBtn) {
@@ -762,6 +776,11 @@ class RageRadarApp {
       const session = this._sessionManager.currentSession;
       if (session) {
         this._controls.setSessionId(session.id);
+        // Tag session with active game profile
+        const activeProfile = this._gameProfileManager?.getActiveProfile();
+        if (activeProfile) {
+          session.profileId = activeProfile.id;
+        }
       }
       this._isActive = true;
       this._sessionStartTime = Date.now();
