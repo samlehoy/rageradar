@@ -6,6 +6,7 @@
 import { eventBus } from '../utils/event-bus.js';
 import { SessionTimeline } from './timeline.js';
 import { getRageColor } from '../utils/rage-levels.js';
+import { createFocusTrap } from '../utils/focus-trap.js';
 
 function formatDuration(ms) {
   if (!ms || isNaN(ms)) return '0s';
@@ -77,6 +78,7 @@ export class SessionSummaryModal {
     this._session = null;
     this._timeline = null;
     this._resolvePromise = null;
+    this._isOpen = false;
 
     this._render();
   }
@@ -206,6 +208,11 @@ export class SessionSummaryModal {
     this._modal = wrapper.querySelector('.summary-modal');
     this._backdrop = wrapper.querySelector('.summary-backdrop');
 
+    this._focusTrap = createFocusTrap(this._wrapper);
+    this._previouslyFocused = null;
+    this._boundHandleKeydown = this._handleKeydown.bind(this);
+    this._boundHandleBackdropClick = this._handleBackdropClick.bind(this);
+
     // Bind actions
     this._modal.querySelector('.summary-save').addEventListener('click', () => this._onSave());
     this._modal.querySelector('.summary-discard').addEventListener('click', () => this._onDiscard());
@@ -220,6 +227,7 @@ export class SessionSummaryModal {
    * @returns {Promise<'save'|'discard'>}
    */
   show(session) {
+    this._previouslyFocused = document.activeElement;
     if (this._resolvePromise) return Promise.resolve('save');
 
     this._session = session;
@@ -256,6 +264,15 @@ export class SessionSummaryModal {
       this._modal.classList.add('scale-100', 'opacity-100');
     });
 
+    this._isOpen = true;
+    this._wrapper.setAttribute('aria-hidden', 'false');
+    document.addEventListener('keydown', this._boundHandleKeydown);
+    this._backdrop.addEventListener('click', this._boundHandleBackdropClick);
+    this._focusTrap.activate();
+    // Focus the save button as default action
+    const saveBtn = this._wrapper.querySelector('.summary-save');
+    if (saveBtn) saveBtn.focus();
+
     // Setup timeline chart
     const canvas = this._wrapper.querySelector('#summary-timeline-canvas');
     if (canvas) {
@@ -265,6 +282,19 @@ export class SessionSummaryModal {
     return new Promise((resolve) => {
       this._resolvePromise = resolve;
     });
+  }
+
+  _handleKeydown(e) {
+    if (e.key === 'Escape' && this._isOpen) {
+      // Escape = save (non-destructive default)
+      this._onSave();
+    }
+  }
+
+  _handleBackdropClick(e) {
+    if (e.target === this._backdrop) {
+      this._onSave();
+    }
   }
 
   _onSave() {
@@ -292,6 +322,12 @@ export class SessionSummaryModal {
   }
 
   _close() {
+    this._wrapper.setAttribute('aria-hidden', 'true');
+    document.removeEventListener('keydown', this._boundHandleKeydown);
+    this._backdrop.removeEventListener('click', this._boundHandleBackdropClick);
+    this._focusTrap.deactivate();
+    this._isOpen = false;
+
     if (this._timeline) {
       this._timeline.destroy();
       this._timeline = null;
@@ -306,6 +342,10 @@ export class SessionSummaryModal {
 
     setTimeout(() => {
       this._wrapper.style.visibility = 'hidden';
+      if (this._previouslyFocused && this._previouslyFocused.focus) {
+        this._previouslyFocused.focus();
+        this._previouslyFocused = null;
+      }
     }, 300);
   }
 

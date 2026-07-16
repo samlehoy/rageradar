@@ -6,6 +6,7 @@
 import { eventBus } from '../utils/event-bus.js';
 import { SessionTimeline } from './timeline.js';
 import { getRageColor } from '../utils/rage-levels.js';
+import { createFocusTrap } from '../utils/focus-trap.js';
 
 function formatDuration(ms) {
   if (!ms || isNaN(ms)) return '0s';
@@ -60,6 +61,7 @@ export class SessionHistory {
     this._boundHandleBackdrop = this._handleBackdropClick.bind(this);
 
     this._render();
+    this._focusTrap = createFocusTrap(this._wrapper);
   }
 
   _render() {
@@ -328,11 +330,13 @@ export class SessionHistory {
 
     document.addEventListener('keydown', this._boundHandleKeydown);
     this._backdrop.addEventListener('click', this._boundHandleBackdrop);
+    this._focusTrap.activate();
   }
 
   close() {
     if (!this._isOpen) return;
     this._isOpen = false;
+    this._focusTrap.deactivate();
 
     if (this._detailTimeline) {
       this._detailTimeline.destroy();

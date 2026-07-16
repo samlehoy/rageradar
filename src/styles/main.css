@@ -275,6 +275,31 @@ body {
 .status-bar__dot--inactive { background: rgba(163, 177, 198, 0.5); box-shadow: inset 1px 1px 2px var(--shadow-dark), inset -1px -1px 2px var(--shadow-light); }
 .status-bar__dot--error { background: var(--error); box-shadow: 0 0 6px rgba(239, 68, 68, 0.4); }
 
+/* ─── Skip Link ──────────────────────────────── */
+.skip-link {
+  position: absolute;
+  top: -100%;
+  left: 16px;
+  z-index: 200;
+  padding: 8px 16px;
+  background: var(--violet);
+  color: white;
+  border-radius: 0 0 8px 8px;
+  font-family: var(--font-dm);
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: top 0.2s ease;
+}
+.skip-link:focus {
+  top: 0;
+  clip: auto;
+  width: auto;
+  height: auto;
+  overflow: visible;
+  position: absolute;
+}
+
 /* ─── Reduced Motion ──────────────────────────── */
 
 @media (prefers-reduced-motion: reduce) {

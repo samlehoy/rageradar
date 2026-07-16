@@ -159,6 +159,13 @@ class RageRadarApp {
         </div>
       </div>
     `;
+    // Skip link for keyboard users
+    const skipLink = document.createElement('a');
+    skipLink.href = '#dashboard-grid';
+    skipLink.className = 'skip-link sr-only focus:not-sr-only';
+    skipLink.textContent = 'Skip to main content';
+    wrapper.insertBefore(skipLink, wrapper.firstChild);
+
     wrapper.appendChild(header);
 
     // ── Main Dashboard Grid ─────────────────────────────

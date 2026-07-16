@@ -6,6 +6,7 @@
 import { eventBus } from '../utils/event-bus.js';
 import { debounce } from '../utils/helpers.js';
 import { loadSettings, saveSettings, resetSettings } from '../utils/settings-store.js';
+import { createFocusTrap } from '../utils/focus-trap.js';
 
 const PANEL_WIDTH = 420;
 
@@ -170,6 +171,7 @@ export class SettingsPanel {
     }, 100);
 
     this._render();
+    this._focusTrap = createFocusTrap(this._wrapper);
     this._bindEvents();
   }
 
@@ -344,6 +346,7 @@ export class SettingsPanel {
     }
     
     document.addEventListener('keydown', this._boundHandleKeydown);
+    this._focusTrap.activate();
     requestAnimationFrame(() => {
       this._closeBtn?.focus();
     });
@@ -353,6 +356,7 @@ export class SettingsPanel {
   close() {
     if (!this._isOpen) return;
     this._isOpen = false;
+    this._focusTrap.deactivate();
     
     this._wrapper.className = 'settings-wrapper fixed inset-0 z-[100] pointer-events-none';
     
