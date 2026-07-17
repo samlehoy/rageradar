@@ -109,6 +109,9 @@ class RageRadarApp {
     this._subscribeEvents();
     this._bindKeyboardShortcuts();
 
+    // Initialize async components (clip recorder, game profiles)
+    await this._initAsyncComponents();
+
     // Load last session stats
     await this._loadLastSessionStats();
 
@@ -549,15 +552,13 @@ class RageRadarApp {
     // Wire cooldown suggestions
     eventBus.on('cooldown:suggestion', (data) => this._handleCooldownSuggestion(data));
 
-    // Clip recording system
+    // Clip recording system (init called later in _initAsyncComponents)
     this._clipRecorder = new ClipRecorder(settings.clips || {});
-    await this._clipRecorder.init();
     this._clipGallery = new ClipGallery(this._clipRecorder);
     document.getElementById('btn-clips')?.addEventListener('click', () => this._onOpenClips());
 
-    // Game profiles system
+    // Game profiles system (init called later in _initAsyncComponents)
     this._gameProfileManager = new GameProfileManager();
-    await this._gameProfileManager.init();
     this._profileSwitcher = new ProfileSwitcher(this._gameProfileManager);
     const profileContainer = document.getElementById('profile-indicator-container');
     if (profileContainer) {
@@ -627,6 +628,16 @@ class RageRadarApp {
       soundType: this._settings.alerts.soundType || 'beep',
       volume: this._settings.alerts.volume ?? 0.5,
     });
+  }
+
+  async _initAsyncComponents() {
+    // Initialize IndexedDB-dependent components
+    if (this._clipRecorder) {
+      await this._clipRecorder.init();
+    }
+    if (this._gameProfileManager) {
+      await this._gameProfileManager.init();
+    }
   }
 
   // ─── Event Subscriptions ────────────────────────────────
