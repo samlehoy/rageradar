@@ -377,6 +377,20 @@ export class ClipGallery {
 
     const overlay = document.createElement('div');
     overlay.className = 'clip-player-overlay';
+    const ext = clip.mimeType && clip.mimeType.includes('webm') ? 'webm' : 'mp4';
+    const filename = `rage-clip-${Math.round(score)}-${new Date(clip.timestamp).toISOString().replace(/[:.]/g, '-')}.${ext}`;
+
+    // Check if Web Share API with files is supported
+    let canShareFiles = false;
+    if (navigator.canShare && navigator.share && clip.blob) {
+      try {
+        const testFile = new File([clip.blob], filename, { type: clip.mimeType || 'video/webm' });
+        canShareFiles = navigator.canShare({ files: [testFile] });
+      } catch (_) {
+        canShareFiles = false;
+      }
+    }
+
     overlay.innerHTML = `
       <div class="clip-player-modal">
         <button class="clip-player-close" aria-label="Close player">&times;</button>
@@ -388,10 +402,18 @@ export class ClipGallery {
           <span class="clip-player-info__stat">
             Duration: <span class="clip-player-info__stat-value">${formatDuration(clip.duration)}</span>
           </span>
-          <button class="clip-player-download" aria-label="Download clip">
-            <iconify-icon icon="lucide:download" style="font-size:14px;"></iconify-icon>
-            Download
-          </button>
+          <div class="clip-player-info__actions">
+            <button class="clip-player-download" aria-label="Download clip">
+              <iconify-icon icon="lucide:download" style="font-size:14px;"></iconify-icon>
+              Download
+            </button>
+            ${canShareFiles ? `
+              <button class="clip-player-share" aria-label="Share clip">
+                <iconify-icon icon="lucide:share-2" style="font-size:14px;"></iconify-icon>
+                Share
+              </button>
+            ` : ''}
+          </div>
         </div>
       </div>
     `;
@@ -412,6 +434,25 @@ export class ClipGallery {
     overlay.querySelector('.clip-player-download').addEventListener('click', () => {
       this._downloadClip(clip, videoUrl);
     });
+
+    // Share (only present if Web Share API supports file sharing)
+    const shareBtn = overlay.querySelector('.clip-player-share');
+    if (shareBtn) {
+      shareBtn.addEventListener('click', async () => {
+        try {
+          const file = new File([clip.blob], filename, { type: clip.mimeType || 'video/webm' });
+          await navigator.share({
+            title: `RageRadar Rage Clip - Score ${Math.round(score)}`,
+            text: `Check out this rage moment! Peak score: ${Math.round(score)}`,
+            files: [file],
+          });
+        } catch (err) {
+          if (err.name !== 'AbortError') {
+            console.error('[ClipGallery] Share failed:', err);
+          }
+        }
+      });
+    }
 
     this._playerOverlay = overlay;
     document.body.appendChild(overlay);

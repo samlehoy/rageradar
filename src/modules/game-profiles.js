@@ -1,5 +1,6 @@
 import { getDB } from '../utils/db.js';
 import { eventBus } from '../utils/event-bus.js';
+import { loadSettings, deepMerge } from '../utils/settings-store.js';
 
 const STORE_NAME = 'gameProfiles';
 
@@ -82,6 +83,7 @@ export class GameProfileManager {
       updatedAt: now,
       sessionCount: 0,
       lastPlayedAt: null,
+      settings: options.settings || null,
     };
 
     await this._putToStore(profile);
@@ -128,7 +130,7 @@ export class GameProfileManager {
     }
 
     // Apply allowed fields only
-    const allowedFields = ['name', 'icon', 'color'];
+    const allowedFields = ['name', 'icon', 'color', 'settings'];
     for (const field of allowedFields) {
       if (updates[field] !== undefined) {
         profile[field] = typeof updates[field] === 'string' ? updates[field].trim() : updates[field];
@@ -184,6 +186,7 @@ export class GameProfileManager {
       icon: profile.icon,
       color: profile.color,
     });
+    eventBus.emit('profile:settings-changed', this.getEffectiveSettings());
   }
 
   /**
@@ -200,6 +203,32 @@ export class GameProfileManager {
   clearActiveProfile() {
     this._activeProfile = null;
     eventBus.emit('profile:changed', null);
+    eventBus.emit('profile:settings-changed', this.getEffectiveSettings());
+  }
+
+  /* ------------------------------------------------------------------ */
+  /*  Per-profile settings                                               */
+  /* ------------------------------------------------------------------ */
+
+  /**
+   * Get effective settings for the active profile, merged with global defaults.
+   * Profile settings override global settings via deep merge.
+   * @returns {Object} Complete settings object
+   */
+  getEffectiveSettings() {
+    const globalSettings = loadSettings();
+    if (!this._activeProfile?.settings) return globalSettings;
+    return deepMerge(globalSettings, this._activeProfile.settings);
+  }
+
+  /**
+   * Update settings overrides for a specific profile.
+   * @param {string} profileId
+   * @param {Object} settingsOverrides - Partial settings to override globals
+   * @returns {Promise<GameProfile>}
+   */
+  async updateProfileSettings(profileId, settingsOverrides) {
+    return this.updateProfile(profileId, { settings: settingsOverrides });
   }
 
   /* ------------------------------------------------------------------ */

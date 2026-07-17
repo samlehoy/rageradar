@@ -48,14 +48,18 @@ const TABS = [
   { id: 'heatmap', label: 'Heatmap' },
   { id: 'peaks', label: 'Peaks' },
   { id: 'export', label: 'Export' },
+  { id: 'compare', label: 'Compare' },
 ];
 
 export class AnalyticsDashboard {
   /**
    * @param {Object} analyticsEngine - AnalyticsEngine instance
+   * @param {Object} [gameProfileManager] - GameProfileManager instance
    */
-  constructor(analyticsEngine) {
+  constructor(analyticsEngine, gameProfileManager = null) {
     this._engine = analyticsEngine;
+    this._gameProfileManager = gameProfileManager;
+    this._selectedProfileId = null;
     this._isOpen = false;
     this._activeTab = 'trends';
     this._trendRange = '30d';
@@ -66,6 +70,7 @@ export class AnalyticsDashboard {
     this._trendsChart = null;
     this._peaksChart = null;
     this._heatmapChart = null;
+    this._compareChart = null;
 
     // Bound handlers
     this._boundHandleKeydown = this._handleKeydown.bind(this);
@@ -108,6 +113,14 @@ export class AnalyticsDashboard {
         <button class="analytics-close" aria-label="Close analytics">
           <iconify-icon icon="lucide:x"></iconify-icon>
         </button>
+      </div>
+
+      <!-- Profile Filter -->
+      <div class="analytics-profile-filter" id="analytics-profile-filter">
+        <label class="analytics-profile-filter__label">Filter by game:</label>
+        <select id="analytics-profile-select" class="analytics-profile-filter__select neu-inset-sm">
+          <option value="">All Games</option>
+        </select>
       </div>
 
       <!-- Tab Navigation -->
@@ -202,10 +215,16 @@ export class AnalyticsDashboard {
               </button>
             </div>
           </div>
+
+          <!-- Compare -->
+          <div class="analytics-tab-panel ${this._activeTab === 'compare' ? 'analytics-tab-panel--active' : ''}" data-panel="compare">
+            <div id="analytics-compare-content"></div>
+          </div>
         </div>
       </div>
     `;
 
+    this._populateProfileFilter();
     this._bindEvents();
   }
 
@@ -249,6 +268,15 @@ export class AnalyticsDashboard {
         this._handleExport(btn.dataset.export);
       });
     });
+
+    // Profile filter
+    const profileSelect = this._panel.querySelector('#analytics-profile-select');
+    if (profileSelect) {
+      profileSelect.addEventListener('change', (e) => {
+        this._selectedProfileId = e.target.value || null;
+        this._refreshCurrentView();
+      });
+    }
   }
 
   /**
@@ -302,6 +330,9 @@ export class AnalyticsDashboard {
         case 'export':
           await this._loadExportInfo();
           break;
+        case 'compare':
+          await this._loadCompare();
+          break;
       }
     } catch (err) {
       console.error(`Failed to load ${tabId} data:`, err);
@@ -316,7 +347,8 @@ export class AnalyticsDashboard {
     if (!container) return;
 
     try {
-      const stats = await this._engine.getOverallStats();
+      const opts = this._selectedProfileId ? { profileId: this._selectedProfileId } : {};
+      const stats = await this._engine.getOverallStats(opts);
 
       container.innerHTML = `
         <div class="analytics-summary-card">
@@ -364,7 +396,8 @@ export class AnalyticsDashboard {
       this._trendsChart = null;
     }
 
-    const data = await this._engine.getTrends(this._trendRange);
+    const opts = this._selectedProfileId ? { profileId: this._selectedProfileId } : {};
+    const data = await this._engine.getTrends(this._trendRange, opts);
     if (!data || !data.daily || data.daily.length === 0) return;
 
     const ctx = canvas.getContext('2d');
@@ -473,7 +506,8 @@ export class AnalyticsDashboard {
       this._heatmapChart = null;
     }
 
-    const data = await this._engine.getHeatmapData(this._heatmapYear);
+    const opts = this._selectedProfileId ? { profileId: this._selectedProfileId } : {};
+    const data = await this._engine.getHeatmapData(this._heatmapYear, null, opts);
     this._heatmapChart = new HeatmapChart(canvas);
     this._heatmapChart.render(data);
   }
@@ -491,7 +525,8 @@ export class AnalyticsDashboard {
       this._peaksChart = null;
     }
 
-    const data = await this._engine.getPeakAnalysis();
+    const opts = this._selectedProfileId ? { profileId: this._selectedProfileId } : {};
+    const data = await this._engine.getPeakAnalysis(opts);
     if (!data || !data.byHour || data.byHour.length === 0) return;
 
     const ctx = canvas.getContext('2d');
@@ -566,7 +601,8 @@ export class AnalyticsDashboard {
     if (!countEl) return;
 
     try {
-      const stats = await this._engine.getOverallStats();
+      const opts = this._selectedProfileId ? { profileId: this._selectedProfileId } : {};
+      const stats = await this._engine.getOverallStats(opts);
       countEl.textContent = `${stats.totalSessions} sessions available for export`;
     } catch {
       countEl.textContent = 'Unable to determine session count';
@@ -580,10 +616,12 @@ export class AnalyticsDashboard {
   async _handleExport(format) {
     try {
       if (format === 'csv') {
-        const csv = await this._engine.exportCSV();
+        const exportOpts = this._selectedProfileId ? { profileId: this._selectedProfileId } : {};
+        const csv = await this._engine.exportCSV(exportOpts);
         downloadFile(csv, 'rageradar-sessions.csv', 'text/csv');
       } else {
-        const json = await this._engine.exportJSON();
+        const exportOpts2 = this._selectedProfileId ? { profileId: this._selectedProfileId } : {};
+        const json = await this._engine.exportJSON(exportOpts2);
         downloadFile(json, 'rageradar-sessions.json', 'application/json');
       }
     } catch (err) {
@@ -658,6 +696,10 @@ export class AnalyticsDashboard {
       this._heatmapChart.destroy();
       this._heatmapChart = null;
     }
+    if (this._compareChart) {
+      this._compareChart.destroy();
+      this._compareChart = null;
+    }
 
     this._backdrop.classList.remove('analytics-backdrop--visible');
     this._panel.classList.remove('analytics-panel--open');
@@ -678,6 +720,218 @@ export class AnalyticsDashboard {
       this._previouslyFocused.focus();
       this._previouslyFocused = null;
     }
+  }
+
+  /**
+   * Set the game profile manager (for late initialization).
+   * @param {Object} manager - GameProfileManager instance
+   */
+  setProfileManager(manager) {
+    this._gameProfileManager = manager;
+  }
+
+  /**
+   * Populate the profile filter dropdown.
+   */
+  async _populateProfileFilter() {
+    const select = this._panel.querySelector('#analytics-profile-select');
+    if (!select || !this._gameProfileManager) return;
+
+    try {
+      const profiles = await this._gameProfileManager.getAllProfiles();
+      // Clear existing options except "All Games"
+      while (select.options.length > 1) select.remove(1);
+
+      for (const p of profiles) {
+        const opt = document.createElement('option');
+        opt.value = p.id;
+        opt.textContent = `${p.icon} ${p.name}`;
+        if (p.id === this._selectedProfileId) opt.selected = true;
+        select.appendChild(opt);
+      }
+    } catch (err) {
+      console.error('Failed to load profiles for filter:', err);
+    }
+  }
+
+  /**
+   * Refresh the current view (summary + active tab) after filter change.
+   */
+  async _refreshCurrentView() {
+    await Promise.all([
+      this._loadSummary(),
+      this._loadTabData(this._activeTab),
+    ]);
+  }
+
+  /**
+   * Load and render the game comparison tab.
+   */
+  async _loadCompare() {
+    const container = this._panel.querySelector('#analytics-compare-content');
+    if (!container) return;
+
+    if (!this._gameProfileManager) {
+      container.innerHTML = `
+        <div class="analytics-empty">
+          <div class="analytics-empty__icon">\uD83C\uDFAE</div>
+          <span class="analytics-empty__text">Game profiles not available</span>
+        </div>
+      `;
+      return;
+    }
+
+    try {
+      const profiles = await this._gameProfileManager.getAllProfiles();
+
+      if (profiles.length < 2) {
+        container.innerHTML = `
+          <div class="analytics-empty">
+            <div class="analytics-empty__icon">\uD83D\uDCCA</div>
+            <span class="analytics-empty__text">Create at least 2 game profiles to compare stats</span>
+          </div>
+        `;
+        return;
+      }
+
+      // Gather stats for each profile
+      const profileStats = await Promise.all(
+        profiles.map(async (p) => {
+          const stats = await this._engine.getOverallStats({ profileId: p.id });
+          return { profile: p, stats };
+        })
+      );
+
+      // Render cards
+      const cardsHtml = profileStats.map(({ profile, stats }) => {
+        const rageColor = getRageColor(stats.overallAvg);
+        const ragePct = Math.round((stats.overallAvg / 100) * 100);
+        const totalDuration = this._formatDurationShort(stats.totalDuration);
+
+        return `
+          <div class="compare-card" style="--compare-accent: ${profile.color}">
+            <div class="compare-header">
+              <span class="compare-icon">${profile.icon}</span>
+              <span class="compare-name">${profile.name}</span>
+            </div>
+            <div class="compare-stats">
+              <div class="stat-row"><span>Sessions</span><span>${stats.totalSessions}</span></div>
+              <div class="stat-row"><span>Avg Rage</span><span style="color: ${rageColor}">${Math.round(stats.overallAvg)}</span></div>
+              <div class="stat-row"><span>Max Rage</span><span>${stats.worstSession ? Math.round(stats.worstSession.avg) : '--'}</span></div>
+              <div class="stat-row"><span>Total Time</span><span>${totalDuration}</span></div>
+            </div>
+            <div class="compare-bar">
+              <div class="compare-bar__fill" style="width: ${ragePct}%; background: ${rageColor}"></div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      container.innerHTML = `
+        <h3 class="analytics-section-title">Game Comparison</h3>
+        <div class="compare-grid">${cardsHtml}</div>
+        <div class="analytics-chart-well" style="margin-top: var(--space-5)">
+          <h3 class="analytics-section-title">Average Rage by Game</h3>
+          <div class="analytics-chart-container">
+            <canvas id="compare-chart"></canvas>
+          </div>
+        </div>
+      `;
+
+      // Render bar chart
+      this._renderCompareChart(profileStats);
+    } catch (err) {
+      console.error('Failed to load comparison data:', err);
+      container.innerHTML = `
+        <div class="analytics-empty">
+          <span class="analytics-empty__text">Unable to load comparison data</span>
+        </div>
+      `;
+    }
+  }
+
+  /**
+   * Render the comparison bar chart.
+   * @param {Array} profileStats
+   */
+  _renderCompareChart(profileStats) {
+    const canvas = this._panel.querySelector('#compare-chart');
+    if (!canvas) return;
+
+    if (this._compareChart) {
+      this._compareChart.destroy();
+      this._compareChart = null;
+    }
+
+    const ctx = canvas.getContext('2d');
+    this._compareChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: profileStats.map(ps => `${ps.profile.icon} ${ps.profile.name}`),
+        datasets: [{
+          label: 'Avg Rage',
+          data: profileStats.map(ps => Math.round(ps.stats.overallAvg)),
+          backgroundColor: profileStats.map(ps => ps.profile.color + '99'),
+          borderColor: profileStats.map(ps => ps.profile.color),
+          borderWidth: 2,
+          borderRadius: 8,
+          borderSkipped: false,
+        }],
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: { duration: 400, easing: 'easeOutCubic' },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            enabled: true,
+            backgroundColor: 'rgba(61, 72, 82, 0.92)',
+            titleFont: { family: 'Plus Jakarta Sans', size: 11, weight: '700' },
+            bodyFont: { family: 'DM Sans', size: 11, weight: '500' },
+            padding: 10,
+            cornerRadius: 10,
+          },
+        },
+        scales: {
+          x: {
+            min: 0,
+            max: 100,
+            ticks: {
+              stepSize: 20,
+              color: '#9CA3AF',
+              font: { family: 'DM Sans', size: 9, weight: 'bold' },
+            },
+            grid: { color: 'rgba(163, 177, 198, 0.15)' },
+            border: { display: false },
+          },
+          y: {
+            ticks: {
+              color: '#9CA3AF',
+              font: { family: 'DM Sans', size: 11, weight: 'bold' },
+            },
+            grid: { display: false },
+            border: { display: false },
+          },
+        },
+      },
+    });
+  }
+
+  /**
+   * Format duration as short human-readable string.
+   * @param {number} ms
+   * @returns {string}
+   */
+  _formatDurationShort(ms) {
+    if (!ms || isNaN(ms)) return '0s';
+    const totalSecs = Math.floor(ms / 1000);
+    const hrs = Math.floor(totalSecs / 3600);
+    const mins = Math.floor((totalSecs % 3600) / 60);
+    if (hrs > 0) return `${hrs}h ${mins}m`;
+    if (mins > 0) return `${mins}m`;
+    return `${totalSecs}s`;
   }
 
   /**

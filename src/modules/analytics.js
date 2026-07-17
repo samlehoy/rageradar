@@ -29,11 +29,11 @@ export class AnalyticsEngine {
    * @param {'7d'|'30d'|'90d'|'all'} range
    * @returns {Promise<{daily: Array, weekly: Array, monthly: Array}>}
    */
-  async getTrends(range = '30d') {
-    const cacheKey = `trends:${range}`;
+  async getTrends(range = '30d', { profileId } = {}) {
+    const cacheKey = `trends:${range}:${profileId || 'all'}`;
     if (this._cache[cacheKey]) return this._cache[cacheKey];
 
-    const sessions = await this._completedSessions();
+    const sessions = await this._completedSessions(profileId);
     const cutoff = this._rangeCutoff(range);
     const filtered = sessions.filter(s => s.startedAt >= cutoff);
 
@@ -102,11 +102,11 @@ export class AnalyticsEngine {
    * @param {number|null} month — 0-based; null = full year
    * @returns {Promise<Array<{date: string, dayOfWeek: number, weekIndex: number, avg: number, sessions: number}>>}
    */
-  async getHeatmapData(year, month = null) {
-    const cacheKey = `heatmap:${year}:${month}`;
+  async getHeatmapData(year, month = null, { profileId } = {}) {
+    const cacheKey = `heatmap:${year}:${month}:${profileId || 'all'}`;
     if (this._cache[cacheKey]) return this._cache[cacheKey];
 
-    const sessions = await this._completedSessions();
+    const sessions = await this._completedSessions(profileId);
 
     // Build a map of date → sessions
     const byDate = new Map();
@@ -157,10 +157,11 @@ export class AnalyticsEngine {
    * Peak analysis for bar charts.
    * @returns {Promise<{byHour: Array, byDayOfWeek: Array, byDuration: Array}>}
    */
-  async getPeakAnalysis() {
-    if (this._cache.peak) return this._cache.peak;
+  async getPeakAnalysis({ profileId } = {}) {
+    const cacheKey = `peak:${profileId || 'all'}`;
+    if (this._cache[cacheKey]) return this._cache[cacheKey];
 
-    const sessions = await this._completedSessions();
+    const sessions = await this._completedSessions(profileId);
 
     // --- by hour of day ---
     const hourBuckets = Array.from({ length: 24 }, (_, i) => ({ hour: i, total: 0, count: 0 }));
@@ -206,7 +207,7 @@ export class AnalyticsEngine {
     });
 
     const result = { byHour, byDayOfWeek, byDuration };
-    this._cache.peak = result;
+    this._cache[cacheKey] = result;
     return result;
   }
 
@@ -214,13 +215,14 @@ export class AnalyticsEngine {
    * Overall summary statistics.
    * @returns {Promise<{totalSessions: number, totalDuration: number, overallAvg: number, bestSession: Object|null, worstSession: Object|null}>}
    */
-  async getOverallStats() {
-    if (this._cache.overall) return this._cache.overall;
+  async getOverallStats({ profileId } = {}) {
+    const cacheKey = `overall:${profileId || 'all'}`;
+    if (this._cache[cacheKey]) return this._cache[cacheKey];
 
-    const sessions = await this._completedSessions();
+    const sessions = await this._completedSessions(profileId);
     if (sessions.length === 0) {
       const empty = { totalSessions: 0, totalDuration: 0, overallAvg: 0, bestSession: null, worstSession: null };
-      this._cache.overall = empty;
+      this._cache[cacheKey] = empty;
       return empty;
     }
 
@@ -242,7 +244,7 @@ export class AnalyticsEngine {
       bestSession: { id: best.id, avg: best.stats.avg, date: this._dateKey(best.startedAt) },
       worstSession: { id: worst.id, avg: worst.stats.avg, date: this._dateKey(worst.startedAt) },
     };
-    this._cache.overall = result;
+    this._cache[cacheKey] = result;
     return result;
   }
 
@@ -250,8 +252,8 @@ export class AnalyticsEngine {
    * Export all completed sessions as a CSV string.
    * Columns: Date, StartTime, Duration(s), AvgRage, MaxRage, Spikes, SpikesPercent
    */
-  async exportCSV() {
-    const sessions = await this._completedSessions();
+  async exportCSV({ profileId } = {}) {
+    const sessions = await this._completedSessions(profileId);
     const header = 'Date,StartTime,Duration(s),AvgRage,MaxRage,Spikes,SpikesPercent';
     const rows = sessions.map(s => {
       const d = new Date(s.startedAt);
@@ -266,8 +268,8 @@ export class AnalyticsEngine {
   /**
    * Export all completed sessions as a formatted JSON string.
    */
-  async exportJSON() {
-    const sessions = await this._completedSessions();
+  async exportJSON({ profileId } = {}) {
+    const sessions = await this._completedSessions(profileId);
     const data = sessions.map(s => ({
       id: s.id,
       date: this._dateKey(s.startedAt),
@@ -303,9 +305,13 @@ export class AnalyticsEngine {
   // ---------------------------------------------------------------------------
 
   /** Fetch only completed sessions from the SessionManager. */
-  async _completedSessions() {
+  async _completedSessions(profileId = null) {
     const all = await this._sm.getAllSessions();
-    return all.filter(s => s.status === 'completed');
+    let sessions = all.filter(s => s.status === 'completed');
+    if (profileId) {
+      sessions = sessions.filter(s => s.profileId === profileId);
+    }
+    return sessions;
   }
 
   /** Round to 1 decimal place. */

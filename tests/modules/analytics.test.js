@@ -13,6 +13,7 @@ function createMockSession(overrides = {}) {
     startedAt,
     endedAt: overrides.endedAt || startedAt + (overrides.duration || 1800000),
     status: overrides.status || 'completed',
+    profileId: overrides.profileId || null,
     dataPoints: overrides.dataPoints || [
       { smoothed: 30, raw: 32, timestamp: startedAt + 1000 },
       { smoothed: 45, raw: 48, timestamp: startedAt + 2000 },
@@ -543,6 +544,112 @@ describe('AnalyticsEngine', () => {
       await engine.getTrends('all');
       await engine.getPeakAnalysis();
       expect(sm.getAllSessions).toHaveBeenCalledTimes(6);
+    });
+  });
+
+  // -----------------------------------------------------------------------
+  // Profile filtering
+  // -----------------------------------------------------------------------
+  describe('profile filtering', () => {
+    it('getOverallStats({ profileId }) only includes matching sessions', async () => {
+      const sessions = [
+        createMockSession({ id: 'p1-a', profileId: 'game-valorant', avg: 40, max: 60 }),
+        createMockSession({ id: 'p1-b', profileId: 'game-valorant', avg: 60, max: 80 }),
+        createMockSession({ id: 'p2-a', profileId: 'game-lol', avg: 80, max: 95 }),
+        createMockSession({ id: 'no-profile', avg: 20, max: 30 }),
+      ];
+      sm.getAllSessions.mockResolvedValue(sessions);
+
+      // Filter to valorant only
+      const result = await engine.getOverallStats({ profileId: 'game-valorant' });
+      expect(result.totalSessions).toBe(2);
+      expect(result.overallAvg).toBe(50); // (40+60)/2
+
+      // Without filter should include all
+      engine.invalidateCache();
+      const all = await engine.getOverallStats();
+      expect(all.totalSessions).toBe(4);
+    });
+
+    it('getTrends({ profileId }) filters correctly', async () => {
+      const now = Date.now();
+      const sessions = [
+        createMockSession({ startedAt: now - 2 * 86400000, profileId: 'game-val', avg: 50, max: 70 }),
+        createMockSession({ startedAt: now - 3 * 86400000, profileId: 'game-lol', avg: 80, max: 90 }),
+      ];
+      sm.getAllSessions.mockResolvedValue(sessions);
+
+      const result = await engine.getTrends('7d', { profileId: 'game-val' });
+      expect(result.daily).toHaveLength(1);
+      expect(result.daily[0].avg).toBe(50);
+    });
+
+    it('cache works correctly with different profileId values', async () => {
+      const sessions = [
+        createMockSession({ id: 'a', profileId: 'game-1', avg: 30 }),
+        createMockSession({ id: 'b', profileId: 'game-2', avg: 70 }),
+      ];
+      sm.getAllSessions.mockResolvedValue(sessions);
+
+      // First call — game-1
+      const r1 = await engine.getOverallStats({ profileId: 'game-1' });
+      expect(r1.totalSessions).toBe(1);
+      expect(r1.overallAvg).toBe(30);
+
+      // Second call — game-2 (different cache key)
+      const r2 = await engine.getOverallStats({ profileId: 'game-2' });
+      expect(r2.totalSessions).toBe(1);
+      expect(r2.overallAvg).toBe(70);
+
+      // Both calls required separate getAllSessions calls (different cache keys)
+      expect(sm.getAllSessions).toHaveBeenCalledTimes(2);
+
+      // Third call — game-1 again (should be cached)
+      const r3 = await engine.getOverallStats({ profileId: 'game-1' });
+      expect(r3.overallAvg).toBe(30);
+      expect(sm.getAllSessions).toHaveBeenCalledTimes(2); // still 2, was cached
+    });
+
+    it('getPeakAnalysis({ profileId }) filters correctly', async () => {
+      const sessions = [
+        createMockSession({ startedAt: ts('2026-06-10', 9), profileId: 'game-1', avg: 40 }),
+        createMockSession({ startedAt: ts('2026-06-10', 14), profileId: 'game-2', avg: 80 }),
+      ];
+      sm.getAllSessions.mockResolvedValue(sessions);
+
+      const result = await engine.getPeakAnalysis({ profileId: 'game-1' });
+      const hour9 = result.byHour.find(h => h.hour === 9);
+      expect(hour9.count).toBe(1);
+      expect(hour9.avg).toBe(40);
+
+      const hour14 = result.byHour.find(h => h.hour === 14);
+      expect(hour14.count).toBe(0); // filtered out
+    });
+
+    it('exportCSV({ profileId }) only exports matching sessions', async () => {
+      const sessions = [
+        createMockSession({ id: '1', profileId: 'game-1' }),
+        createMockSession({ id: '2', profileId: 'game-2' }),
+        createMockSession({ id: '3', profileId: 'game-1' }),
+      ];
+      sm.getAllSessions.mockResolvedValue(sessions);
+
+      const csv = await engine.exportCSV({ profileId: 'game-1' });
+      const lines = csv.split('\n');
+      expect(lines).toHaveLength(3); // 1 header + 2 matching rows
+    });
+
+    it('exportJSON({ profileId }) only exports matching sessions', async () => {
+      const sessions = [
+        createMockSession({ id: '1', profileId: 'game-x' }),
+        createMockSession({ id: '2', profileId: 'game-y' }),
+      ];
+      sm.getAllSessions.mockResolvedValue(sessions);
+
+      const json = await engine.exportJSON({ profileId: 'game-x' });
+      const parsed = JSON.parse(json);
+      expect(parsed).toHaveLength(1);
+      expect(parsed[0].id).toBe('1');
     });
   });
 });

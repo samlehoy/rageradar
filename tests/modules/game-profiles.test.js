@@ -404,4 +404,106 @@ describe('GameProfileManager', () => {
       expect(manager._db).toBeNull();
     });
   });
+
+  /* ------------------------------------------------------------------ */
+  /*  Per-profile settings                                               */
+  /* ------------------------------------------------------------------ */
+
+  describe('getEffectiveSettings', () => {
+    it('should return global defaults when no active profile', () => {
+      const settings = manager.getEffectiveSettings();
+
+      // Should have all default sections
+      expect(settings).toHaveProperty('camera');
+      expect(settings).toHaveProperty('microphone');
+      expect(settings).toHaveProperty('fusion');
+      expect(settings).toHaveProperty('alerts');
+      expect(settings).toHaveProperty('sensitivity');
+      expect(settings).toHaveProperty('cooldown');
+
+      // Spot-check a known default
+      expect(settings.fusion.faceWeight).toBe(0.65);
+      expect(settings.alerts.threshold).toBe(70);
+    });
+
+    it('should return global defaults when active profile has no settings override', async () => {
+      const profile = await manager.createProfile('Valorant');
+      await manager.setActiveProfile(profile.id);
+
+      const settings = manager.getEffectiveSettings();
+
+      expect(settings.fusion.faceWeight).toBe(0.65);
+      expect(settings.alerts.threshold).toBe(70);
+    });
+
+    it('should merge profile settings over globals', async () => {
+      const profile = await manager.createProfile('CS2', {
+        settings: {
+          alerts: { threshold: 90 },
+          fusion: { faceWeight: 0.8 },
+        },
+      });
+      await manager.setActiveProfile(profile.id);
+
+      const settings = manager.getEffectiveSettings();
+
+      // Overridden values
+      expect(settings.alerts.threshold).toBe(90);
+      expect(settings.fusion.faceWeight).toBe(0.8);
+
+      // Non-overridden values remain default
+      expect(settings.fusion.audioWeight).toBe(0.35);
+      expect(settings.alerts.cooldownMs).toBe(30000);
+      expect(settings.cooldown.threshold).toBe(70);
+    });
+  });
+
+  describe('updateProfileSettings', () => {
+    it('should persist settings to the profile', async () => {
+      const profile = await manager.createProfile('Apex Legends');
+
+      await manager.updateProfileSettings(profile.id, {
+        cooldown: { threshold: 50 },
+      });
+
+      const updated = await manager.getProfile(profile.id);
+      expect(updated.settings).toEqual({ cooldown: { threshold: 50 } });
+    });
+  });
+
+  describe('profile:settings-changed event', () => {
+    it('should emit profile:settings-changed when setActiveProfile is called', async () => {
+      const profile = await manager.createProfile('Valorant', {
+        settings: { alerts: { threshold: 85 } },
+      });
+
+      const listener = vi.fn();
+      eventBus.on('profile:settings-changed', listener);
+
+      await manager.setActiveProfile(profile.id);
+
+      expect(listener).toHaveBeenCalledOnce();
+      const emittedSettings = listener.mock.calls[0][0];
+      expect(emittedSettings.alerts.threshold).toBe(85);
+      // Non-overridden values should still be present from globals
+      expect(emittedSettings.fusion.faceWeight).toBe(0.65);
+    });
+
+    it('should emit profile:settings-changed with global defaults when clearActiveProfile is called', async () => {
+      const profile = await manager.createProfile('Valorant', {
+        settings: { alerts: { threshold: 85 } },
+      });
+      await manager.setActiveProfile(profile.id);
+
+      const listener = vi.fn();
+      eventBus.on('profile:settings-changed', listener);
+
+      manager.clearActiveProfile();
+
+      expect(listener).toHaveBeenCalledOnce();
+      const emittedSettings = listener.mock.calls[0][0];
+      // Should be back to global defaults since no active profile
+      expect(emittedSettings.alerts.threshold).toBe(70);
+    });
+  });
 });

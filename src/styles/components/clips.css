@@ -597,6 +597,45 @@
   transform: translateY(0.5px);
 }
 
+/* ─── Share Button ─────────────────────────────────── */
+
+.clip-player-info__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-shrink: 0;
+}
+
+.clip-player-share {
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-sm);
+  background: var(--teal);
+  color: #fff;
+  border: none;
+  font-family: var(--font-body);
+  font-size: var(--text-small);
+  font-weight: var(--weight-bold);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  box-shadow: 2px 2px 4px rgba(163, 177, 198, 0.35),
+              5px 5px 12px var(--shadow-dark),
+              -2px -2px 4px rgba(255, 255, 255, 0.45),
+              -5px -5px 12px var(--shadow-light);
+  transition: transform var(--transition-fast),
+              background var(--transition-fast);
+}
+
+.clip-player-share:hover {
+  background: var(--teal-light, #5eead4);
+  transform: translateY(-1px);
+}
+
+.clip-player-share:active {
+  transform: translateY(0.5px);
+}
+
 .clip-player-close {
   position: absolute;
   top: var(--space-3);

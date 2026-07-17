@@ -32,6 +32,7 @@ import { AnalyticsDashboard } from './ui/analytics-dashboard.js';
 import { CooldownEngine } from './modules/cooldown.js';
 import { BreathingOverlay } from './ui/breathing-overlay.js';
 import { BreakReminder } from './ui/break-reminder.js';
+import { CooldownTimer } from './ui/cooldown-timer.js';
 import { ClipRecorder } from './modules/clip-recorder.js';
 import { ClipGallery } from './ui/clip-gallery.js';
 import { GameProfileManager } from './modules/game-profiles.js';
@@ -81,6 +82,7 @@ class RageRadarApp {
     this._cooldownEngine = null;
     this._breathingOverlay = null;
     this._breakReminder = null;
+    this._cooldownTimer = null;
     this._clipRecorder = null;
     this._clipGallery = null;
     this._gameProfileManager = null;
@@ -549,6 +551,9 @@ class RageRadarApp {
       onDismiss: () => this._cooldownEngine.recordDismissal('break'),
     });
 
+    // Cooldown timer
+    this._cooldownTimer = new CooldownTimer();
+
     // Wire cooldown suggestions
     eventBus.on('cooldown:suggestion', (data) => this._handleCooldownSuggestion(data));
 
@@ -637,6 +642,10 @@ class RageRadarApp {
     }
     if (this._gameProfileManager) {
       await this._gameProfileManager.init();
+      // Pass profile manager to analytics dashboard for filtering & comparison
+      if (this._analyticsDashboard) {
+        this._analyticsDashboard.setProfileManager(this._gameProfileManager);
+      }
     }
   }
 
@@ -773,6 +782,30 @@ class RageRadarApp {
     // Settings changed → propagate to modules
     this._unsubSettings = eventBus.on('settings:changed', (settings) => {
       this._applySettings(settings);
+    });
+
+    // Profile settings changed → re-apply to modules
+    this._unsubProfileSettings = eventBus.on('profile:settings-changed', (settings) => {
+      if (this._fusion) {
+        this._fusion.updateConfig({
+          faceWeight: settings.fusion.faceWeight,
+          audioWeight: settings.fusion.audioWeight,
+          emaAlpha: settings.fusion.emaAlpha,
+          momentumDecay: settings.fusion.momentumDecay,
+        });
+      }
+      if (this._alerts) {
+        this._alerts.updateConfig({
+          threshold: settings.alerts.threshold,
+          cooldownMs: settings.alerts.cooldownMs,
+        });
+      }
+      if (this._cooldownEngine) {
+        this._cooldownEngine.updateConfig({
+          threshold: settings.cooldown.threshold,
+          sustainedDurationMs: settings.cooldown.sustainedDurationMs,
+        });
+      }
     });
   }
 
@@ -911,6 +944,13 @@ class RageRadarApp {
       this._breakReminder.show('Consider taking a short break to reset.');
     } else {
       this._breakReminder.show(data.message || 'Take a moment to relax.');
+      // Also show cooldown timer for tip-type suggestions
+      if (this._cooldownTimer) {
+        this._cooldownTimer.show(120000, {  // 2 min cooldown
+          message: data.message || 'Take a moment...',
+          onComplete: () => this._toasts?.showSuccess?.('Cooldown complete! 🎯'),
+        });
+      }
     }
   }
 
